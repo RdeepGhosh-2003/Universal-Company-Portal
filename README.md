@@ -99,3 +99,12 @@ Universal Company Portal/
   - The extension dispatches native `input`, `change`, and `blur` events so framework-controlled forms update automatically. If a custom field is missed, click into the input or use the **Quick Copy** chips in the extension popup.
 - **How to update default login credentials?**
   - Open the Profile Manager (Options page) -> **Logins & Credentials** tab -> update **Gmail / Login Email** and **Account Password** -> click **💾 Save Profile**.
+
+---
+
+## 🐙 Git Version Control & Maintenance
+
+- Every small change, fix, and feature update in `Universal Company Portal` is tracked in Git.
+- **Commit History**: Check `git log` or [`CHANGELOG.md`](file:///c:/Users/KIIT/OneDrive/Documents/Automate%20Jobs/Universal%20Company%20Portal/CHANGELOG.md) to inspect version updates.
+- **Documentation Policy**: All codebase modifications automatically sync with `README.md` and `CHANGELOG.md`.
+

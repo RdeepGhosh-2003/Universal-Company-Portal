@@ -2,6 +2,17 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.0.1] - 2026-07-25
+
+### 🔧 Git Integration & Automated Documentation Updates
+- **Version Control Initialization**:
+  - Initialized dedicated Git repository inside `Universal Company Portal`.
+  - Configured local Git user identity (`Rajdeep Ghosh`).
+  - Added `.gitignore` to exclude system artifacts (`.DS_Store`, `desktop.ini`, `Thumbs.db`, `.env.local`, `node_modules/`).
+  - Staged and committed initial extension codebase, options dashboard, popup interface, and background scripts.
+- **Documentation Workflow**:
+  - Established continuous Git tracking rule: every code change and feature update will be committed to Git and documented in `CHANGELOG.md` and `README.md`.
+
 ---
 
 ## [1.0.0] - 2026-07-25
