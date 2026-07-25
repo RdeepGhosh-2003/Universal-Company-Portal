@@ -98,6 +98,12 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 
   chrome.contextMenus.create({
+    id: "learn_portal_fields",
+    title: "🧠 Learn & Save Fields on Current Page",
+    contexts: ["editable", "page"]
+  });
+
+  chrome.contextMenus.create({
     id: "open_portal_options",
     title: "⚙️ Manage Auto-Fill Profile & Passwords",
     contexts: ["action"]
@@ -112,12 +118,14 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.tabs.sendMessage(tab.id, { action: "TRIGGER_AUTOFILL", mode: "ALL" });
   } else if (info.menuItemId === "fill_portal_credentials") {
     chrome.tabs.sendMessage(tab.id, { action: "TRIGGER_AUTOFILL", mode: "CREDENTIALS" });
+  } else if (info.menuItemId === "learn_portal_fields") {
+    chrome.tabs.sendMessage(tab.id, { action: "TRIGGER_LEARN" });
   } else if (info.menuItemId === "open_portal_options") {
     chrome.runtime.openOptionsPage();
   }
 });
 
-// 3. Handle Keyboard Shortcuts (Alt+F and Alt+G)
+// 3. Handle Keyboard Shortcuts (Alt+F, Alt+G, Alt+L)
 chrome.commands.onCommand.addListener((command) => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (!tabs || !tabs[0] || !tabs[0].id) return;
@@ -126,6 +134,8 @@ chrome.commands.onCommand.addListener((command) => {
       chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_AUTOFILL", mode: "ALL" });
     } else if (command === "fill_credentials") {
       chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_AUTOFILL", mode: "CREDENTIALS" });
+    } else if (command === "learn_fields") {
+      chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_LEARN" });
     }
   });
 });
@@ -140,6 +150,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === "SAVE_PROFILE") {
     chrome.storage.local.set({ profile: request.profile }, () => {
       sendResponse({ status: "SUCCESS" });
+    });
+    return true;
+  } else if (request.action === "LEARN_NEW_FIELDS") {
+    chrome.storage.local.get(["profile"], (result) => {
+      const profile = result.profile || DEFAULT_PROFILE;
+      if (!profile.screening) profile.screening = [];
+
+      let learnedCount = 0;
+      request.newFields.forEach(item => {
+        const kwLower = item.keywords.toLowerCase();
+        // Check if rule already exists
+        const exists = profile.screening.some(rule => rule.keywords.toLowerCase() === kwLower);
+        if (!exists && item.keywords && item.answer) {
+          profile.screening.unshift({
+            keywords: item.keywords,
+            answer: item.answer,
+            learnedAt: new Date().toISOString()
+          });
+          learnedCount++;
+        }
+      });
+
+      if (learnedCount > 0) {
+        chrome.storage.local.set({ profile }, () => {
+          sendResponse({ status: "SUCCESS", count: learnedCount });
+        });
+      } else {
+        sendResponse({ status: "NO_NEW_FIELDS", count: 0 });
+      }
     });
     return true;
   } else if (request.action === "SHOW_NOTIFICATION") {

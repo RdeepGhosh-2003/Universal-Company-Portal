@@ -82,6 +82,13 @@ Universal Company Portal/
 - **Add Custom Screening Rules**: Click `+ Add Rule` under the *Screening Q&A* tab to pair keywords (e.g. `python, pandas`) with your desired answer.
 - **Backup & Restore**: Use `📥 Export Profile JSON` and `📤 Import Profile JSON` to back up or restore your data.
 
+### 4. 🧠 "Learn as You Go" Memory Engine
+- When you type answers into new fields on a company portal that haven't been saved yet:
+  - Press **`Alt + L`** on your keyboard, OR
+  - Click the popup button **`🧠 Learn & Save Page Inputs`**, OR
+  - Right-click and choose **`🧠 Learn & Save Fields on Current Page`**.
+- The extension automatically extracts keywords from the field labels, pairs them with your typed answer, and saves them to your Q&A memory. Next time you visit any portal with similar questions, it auto-fills automatically!
+
 ---
 
 ## 🎹 Keyboard Shortcuts Summary
@@ -90,6 +97,7 @@ Universal Company Portal/
 | :--- | :--- | :--- |
 | **`Alt + F`** | **Auto-Fill Entire Form** | Auto-fills all candidate, work, education & screening fields on current page |
 | **`Alt + G`** | **Fill Gmail & Password** | Fills email and password fields specifically for sign-ups and logins |
+| **`Alt + L`** | **Learn & Save Fields** | Scans typed inputs on page and saves new field rules to Q&A memory |
 
 ---
 

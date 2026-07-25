@@ -46,6 +46,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Action: Learn & Save Page Inputs
+  const btnLearnFields = document.getElementById('btn-learn-fields');
+  if (btnLearnFields) {
+    btnLearnFields.addEventListener('click', () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0] && tabs[0].id) {
+          chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_LEARN" }, () => {
+            statusEl.textContent = "🧠 Learn fields signal sent!";
+            setTimeout(() => window.close(), 1200);
+          });
+        }
+      });
+    });
+  }
+
   // Action: Open Options Manager
   btnOptions.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();

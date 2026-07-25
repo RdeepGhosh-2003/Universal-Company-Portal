@@ -121,6 +121,18 @@ body {
   transform: translateY(-1px);
 }
 
+.accent-btn {
+  background: linear-gradient(135deg, #a855f7, #7e22ce);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+}
+
+.accent-btn:hover {
+  background: linear-gradient(135deg, #9333ea, #6b21a8);
+  transform: translateY(-1px);
+}
+
 .btn-icon {
   font-size: 20px;
 }

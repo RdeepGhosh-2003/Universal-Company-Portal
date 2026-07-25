@@ -2,6 +2,23 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.1.0] - 2026-07-25
+
+### 🧠 "Learn as You Go" Memory Engine
+- **Field Memory & Learning (`content/content_script.js` & `background/background.js`)**:
+  - Automatically captures user-typed inputs and answers on company portals.
+  - Extracts clean field keywords from input labels, placeholders, and aria attributes.
+  - Dynamically saves new keyword-to-answer rules to your local screening Q&A memory (`chrome.storage.local`).
+- **Keyboard Shortcut (`Alt+L`)**:
+  - Introduced **`Alt+L`** shortcut to trigger instant field learning on any page.
+- **Popup & Context Menu Integration**:
+  - Added purple accent button **`🧠 Learn & Save Page Inputs`** in the extension popup menu.
+  - Added context menu option **`🧠 Learn & Save Fields on Current Page`**.
+- **Visual Learning Feedback**:
+  - Highlights newly learned form fields in vibrant purple (`#a855f7`) with toast notifications confirming learned count.
+
+---
+
 ## [1.0.1] - 2026-07-25
 
 ### 🔧 Git Integration & Automated Documentation Updates

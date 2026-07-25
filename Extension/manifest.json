@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Universal Auto-Fill Engine",
-  "version": "1.0.0",
-  "description": "Auto-fill company job portals, account sign-ups, email & passwords, and screening details automatically.",
+  "version": "1.1.0",
+  "description": "Auto-fill company job portals, account sign-ups, email & passwords, and screening details with Learn-as-You-Go memory.",
   "permissions": [
     "storage",
     "activeTab",
@@ -56,6 +56,13 @@
         "mac": "Alt+G"
       },
       "description": "Instant fill Gmail and Password only"
+    },
+    "learn_fields": {
+      "suggested_key": {
+        "default": "Alt+L",
+        "mac": "Alt+L"
+      },
+      "description": "Scan and learn new form field inputs on current page"
     }
   },
   "icons": {

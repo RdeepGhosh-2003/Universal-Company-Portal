@@ -201,11 +201,65 @@
     document.body.appendChild(widget);
   }
 
+  // Learn-as-You-Go Scanner Engine
+  function performLearnFields() {
+    const inputs = document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]):not([type="password"]), select, textarea');
+    const newFieldsToLearn = [];
+
+    inputs.forEach(el => {
+      const val = (el.value || '').trim();
+      if (!val) return;
+
+      // Skip standard passwords
+      if ((el.type || '').toLowerCase() === 'password') return;
+
+      const labelText = window.UniversalMatcher.getElementLabelText(el);
+      if (!labelText || labelText.length < 2) return;
+
+      // Clean keywords from label text (remove common filler words)
+      const keywords = labelText
+        .replace(/[?:*!]/g, '')
+        .replace(/\b(please|enter|your|select|choose|type|input|here|field|the|a|an)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (keywords.length >= 3 && val.length >= 1) {
+        newFieldsToLearn.push({
+          keywords: keywords,
+          answer: val
+        });
+
+        // Highlight learned field in purple accent
+        el.style.outline = '2px solid #a855f7';
+        el.style.outlineOffset = '1px';
+        setTimeout(() => {
+          el.style.outline = '';
+          el.style.outlineOffset = '';
+        }, 3000);
+      }
+    });
+
+    if (newFieldsToLearn.length > 0) {
+      chrome.runtime.sendMessage({ action: "LEARN_NEW_FIELDS", newFields: newFieldsToLearn }, (res) => {
+        if (res && res.count > 0) {
+          showToast(`🧠 Learned & saved ${res.count} new field rule${res.count > 1 ? 's' : ''} to memory!`, "success");
+        } else {
+          showToast(`ℹ️ All filled field rules are already saved in memory.`, "info");
+        }
+      });
+    } else {
+      showToast(`⚠️ No filled input fields found to learn on this page. Type your answers first!`, "info");
+    }
+  }
+
   // Listen for Messages from Popup / Service Worker
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "TRIGGER_AUTOFILL") {
       performAutoFill(request.mode || "ALL");
       sendResponse({ status: "STARTED" });
+    } else if (request.action === "TRIGGER_LEARN") {
+      performLearnFields();
+      sendResponse({ status: "LEARNING_STARTED" });
     } else if (request.action === "UPDATE_PROFILE") {
       currentProfile = request.profile;
       sendResponse({ status: "UPDATED" });
