@@ -9,7 +9,7 @@ window.UniversalMatcher = (function() {
   const FIELD_MAPPINGS = [
     // 1. Account Credentials & Logins
     { keys: ['confirm email', 're-enter email', 'verify email'], path: 'credentials.email' },
-    { keys: ['email address', 'email', 'e-mail', 'user email', 'work email', 'personal email', 'gmail', 'login email', 'username'], path: 'credentials.email' },
+    { keys: ['this is how we\'ll communicate with you', 'email address', 'email', 'e-mail', 'user email', 'work email', 'personal email', 'gmail', 'login email', 'email id', 'username'], path: 'credentials.email' },
     { keys: ['confirm password', 're-enter password', 'verify password', 'password confirmation'], path: 'credentials.password', isConfirmPassword: true },
     { keys: ['account password', 'create password', 'new password', 'portal password', 'user password', 'password'], path: 'credentials.password' },
 
@@ -121,11 +121,14 @@ window.UniversalMatcher = (function() {
     if (el.id) labelTexts.push(el.id);
     if (el.title) labelTexts.push(el.title);
 
-    // 5. Parent container heading / label text
+    // 5. Parent container heading / label / subtext
     const container = el.closest('.form-group, .field, .form-item, fieldset, form > div, div[class*="Form"], div[class*="input"], div[class*="field"]');
     if (container) {
       const header = container.querySelector('label, h1, h2, h3, h4, legend, [class*="label"], [class*="title"], [class*="header"]');
       if (header) labelTexts.push(header.textContent);
+      
+      const subtext = container.querySelector('p, small, span, div, [class*="desc"], [class*="help"], [class*="subtext"]');
+      if (subtext) labelTexts.push(subtext.textContent);
     }
 
     return labelTexts.join(' ').toLowerCase().replace(/\s+/g, ' ').trim();

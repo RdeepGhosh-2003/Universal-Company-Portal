@@ -2,6 +2,20 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.3.0] - 2026-07-25
+
+### ⚡ Instant Email Auto-Fill & Agreement Auto-Submit Engine
+- **Instant Email Auto-Filler (`content/content_script.js` & `content/matcher.js`)**:
+  - Automatically pre-fills your saved Gmail / Email address into fields as soon as they are loaded or focused!
+  - Expanded email matcher dictionary to recognize field subtext instructions such as `"This is how we'll communicate with you."`, `"Email Address *"`, `"Work Email"`, and `"Email ID"`.
+  - Added setting toggle: **`Instant Auto-fill Email on Focus / Page Load`** in Profile Manager.
+- **Auto-Click Next / Submit on Agreement Checkbox (`content/content_script.js`)**:
+  - Dynamic event listener on agreement checkboxes (`"I agree with..."`, `"Terms & Conditions"`, `"Privacy Policy"`).
+  - Whenever you check an agreement checkbox, the extension automatically finds and clicks the primary **`Next`**, **`Submit`**, **`Continue`**, **`Save & Continue`**, or **`Create Account`** button on the page!
+  - Added setting toggle: **`Auto-click Next / Submit when Agreement checkbox is checked`** in Profile Manager.
+
+---
+
 ## [1.2.0] - 2026-07-25
 
 ### 🚀 Auto Sign-Up, Account Creation & Auto-Submit Engine

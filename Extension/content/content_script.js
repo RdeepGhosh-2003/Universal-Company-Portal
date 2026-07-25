@@ -18,6 +18,19 @@
           injectFloatingWidget();
         }
 
+        // Instant Email Auto-Fill on Load
+        setTimeout(() => performInstantEmailAutoFill(), 300);
+
+        // Attach Agreement Checkbox Listeners
+        setTimeout(() => setupAgreementCheckboxListeners(), 500);
+
+        // Attach Focus Listener for Email Fields
+        document.addEventListener('focusin', (e) => {
+          if (e.target && e.target.tagName === 'INPUT') {
+            performInstantEmailAutoFill(e.target);
+          }
+        });
+
         // Auto fill on load if enabled
         if (currentProfile.settings && currentProfile.settings.autoFillOnLoad) {
           setTimeout(() => performAutoFill("ALL"), 800);
@@ -332,6 +345,84 @@
     // Fallback to first form submit button
     const formSubmit = document.querySelector('form input[type="submit"], form button[type="submit"]');
     return formSubmit || null;
+  }
+
+  // Setup Agreement Checkbox Listeners (Auto-click Next/Submit when "I agree with..." is checked)
+  function setupAgreementCheckboxListeners() {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+      if (cb.dataset.autofillListenerAttached) return;
+      cb.dataset.autofillListenerAttached = "true";
+
+      cb.addEventListener('change', function() {
+        if (!this.checked) return;
+        if (currentProfile?.settings?.autoSubmitOnAgreement === false) return;
+
+        const labelText = window.UniversalMatcher.getElementLabelText(this);
+        if (
+          labelText.includes('agree') ||
+          labelText.includes('agree with') ||
+          labelText.includes('terms') ||
+          labelText.includes('privacy') ||
+          labelText.includes('consent') ||
+          labelText.includes('condition')
+        ) {
+          setTimeout(() => {
+            const nextBtn = findNextOrSubmitButton();
+            if (nextBtn) {
+              showToast(`⏩ Agreement checked! Auto-clicking ${nextBtn.textContent.trim() || 'Next'}...`, "success");
+              nextBtn.click();
+            }
+          }, 300);
+        }
+      });
+    });
+  }
+
+  // Find Next / Submit / Continue / Save Button
+  function findNextOrSubmitButton() {
+    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], a.btn, [role="button"]'));
+    const targetKeywords = ['next', 'continue', 'save & continue', 'save and continue', 'submit', 'create account', 'register', 'sign up', 'apply'];
+
+    for (const kw of targetKeywords) {
+      const btn = candidates.find(b => {
+        const txt = (b.textContent || b.value || b.getAttribute('aria-label') || '').toLowerCase().trim();
+        return txt.includes(kw) && b.offsetWidth > 0 && b.offsetHeight > 0;
+      });
+      if (btn) return btn;
+    }
+
+    return document.querySelector('form button[type="submit"], form input[type="submit"]') || null;
+  }
+
+  // Instant Email Auto-Filler on Field Focus or Load
+  function performInstantEmailAutoFill(targetInput = null) {
+    if (currentProfile?.settings?.instantEmailAutoFill === false) return;
+
+    const emailVal = currentProfile?.credentials?.email || currentProfile?.personal?.email;
+    if (!emailVal) return;
+
+    const inputs = targetInput ? [targetInput] : Array.from(document.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])'));
+
+    inputs.forEach(el => {
+      if (el.value) return; // Don't overwrite if user already typed
+      const labelText = window.UniversalMatcher.getElementLabelText(el);
+      const type = (el.type || '').toLowerCase();
+
+      if (
+        type === 'email' ||
+        labelText.includes('communicate with you') ||
+        labelText.includes('email address') ||
+        labelText.includes('email id') ||
+        labelText.includes('work email') ||
+        labelText.includes('gmail') ||
+        labelText.includes('e-mail')
+      ) {
+        setNativeValue(el, emailVal);
+        highlightField(el);
+        showToast(`⚡ Instant Email Auto-Filled!`, "success");
+      }
+    });
   }
 
   // Listen for Messages from Popup / Service Worker

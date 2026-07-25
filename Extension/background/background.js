@@ -73,6 +73,8 @@ const DEFAULT_PROFILE = {
     autoAdvanceStep: false,
     autoCheckTerms: true,
     autoSubmitSignUp: true,
+    autoSubmitOnAgreement: true,
+    instantEmailAutoFill: true,
     highlightFilledFields: true,
     showFloatingWidget: true
   }

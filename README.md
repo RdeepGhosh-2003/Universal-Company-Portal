@@ -96,6 +96,10 @@ Universal Company Portal/
   - Right-click and choose **`🚀 Auto Sign-Up & Register Account`**.
 - Automatically populates email, password, confirm password, name, phone, auto-checks required Terms & Conditions checkboxes, and clicks the account creation button!
 
+### 6. ⚡ Instant Email Auto-Fill & Agreement Auto-Submit
+- **Instant Email Auto-Fill**: Automatically fills your saved Gmail / Email into inputs containing label/subtext like `"Email Address *"`, `"This is how we'll communicate with you."`, `"Work Email"`, or `"Email ID"` as soon as the page loads or when you focus on the field!
+- **Auto-Submit on Agreement Check**: Whenever you click/check an agreement checkbox (`"I agree with..."`, `"Terms & Conditions"`, `"Privacy Policy"`), the extension automatically triggers the primary **Next**, **Submit**, **Continue**, **Save & Continue**, or **Create Account** button!
+
 ---
 
 ## 🎹 Keyboard Shortcuts Summary
