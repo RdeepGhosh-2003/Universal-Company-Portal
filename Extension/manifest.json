@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Universal Auto-Fill Engine",
-  "version": "1.1.0",
-  "description": "Auto-fill company job portals, account sign-ups, email & passwords, and screening details with Learn-as-You-Go memory.",
+  "version": "1.2.0",
+  "description": "Auto-fill company job portals, account creation, auto sign-up, email & passwords, and screening details with Learn-as-You-Go memory.",
   "permissions": [
     "storage",
     "activeTab",
@@ -63,6 +63,13 @@
         "mac": "Alt+L"
       },
       "description": "Scan and learn new form field inputs on current page"
+    },
+    "auto_signup": {
+      "suggested_key": {
+        "default": "Alt+S",
+        "mac": "Alt+S"
+      },
+      "description": "Auto sign-up, fill registration fields & submit account creation"
     }
   },
   "icons": {

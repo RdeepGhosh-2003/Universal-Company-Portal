@@ -2,6 +2,24 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.2.0] - 2026-07-25
+
+### 🚀 Auto Sign-Up, Account Creation & Auto-Submit Engine
+- **Auto Registration Engine (`content/content_script.js` & `background/background.js`)**:
+  - Automatically completes multi-step company portal registration and sign-up forms.
+  - Pre-fills email/gmail, passwords, name, phone, and username across account creation pages.
+  - **Auto Terms & Privacy Acceptance**: Detects and auto-checks required agreement checkboxes (`Terms & Conditions`, `Privacy Policy`, `User Agreements`).
+  - **Smart Registration Submit Finder**: Locates and automatically clicks primary account creation buttons (*Create Account*, *Sign Up*, *Register*, *Join Now*, *Submit*).
+- **Keyboard Shortcut (`Alt+S`)**:
+  - Introduced **`Alt+S`** shortcut for 1-click auto sign-up and registration submission.
+- **Popup & Context Menu Integration**:
+  - Added emerald green primary action button **`🚀 Auto Sign-Up & Register`** in the extension popup menu.
+  - Added context menu option **`🚀 Auto Sign-Up & Register Account`**.
+- **Dashboard Settings Controls**:
+  - Added toggles in Profile Manager settings for **`Auto-check Terms & Privacy Policy`** and **`Auto-submit sign-up forms`**.
+
+---
+
 ## [1.1.0] - 2026-07-25
 
 ### 🧠 "Learn as You Go" Memory Engine

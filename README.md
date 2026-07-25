@@ -89,12 +89,20 @@ Universal Company Portal/
   - Right-click and choose **`🧠 Learn & Save Fields on Current Page`**.
 - The extension automatically extracts keywords from the field labels, pairs them with your typed answer, and saves them to your Q&A memory. Next time you visit any portal with similar questions, it auto-fills automatically!
 
+### 5. 🚀 Auto Sign-Up & Account Registration Engine
+- When creating an account on any company portal, career site, or sign-up form:
+  - Press **`Alt + S`** on your keyboard, OR
+  - Click **`🚀 Auto Sign-Up & Register`** in the popup menu, OR
+  - Right-click and choose **`🚀 Auto Sign-Up & Register Account`**.
+- Automatically populates email, password, confirm password, name, phone, auto-checks required Terms & Conditions checkboxes, and clicks the account creation button!
+
 ---
 
 ## 🎹 Keyboard Shortcuts Summary
 
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
+| **`Alt + S`** | **Auto Sign-Up & Submit** | Auto-fills registration, checks Terms & submits account creation |
 | **`Alt + F`** | **Auto-Fill Entire Form** | Auto-fills all candidate, work, education & screening fields on current page |
 | **`Alt + G`** | **Fill Gmail & Password** | Fills email and password fields specifically for sign-ups and logins |
 | **`Alt + L`** | **Learn & Save Fields** | Scans typed inputs on page and saves new field rules to Q&A memory |

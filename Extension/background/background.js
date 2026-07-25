@@ -71,6 +71,8 @@ const DEFAULT_PROFILE = {
   settings: {
     autoFillOnLoad: false,
     autoAdvanceStep: false,
+    autoCheckTerms: true,
+    autoSubmitSignUp: true,
     highlightFilledFields: true,
     showFloatingWidget: true
   }
@@ -98,6 +100,12 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 
   chrome.contextMenus.create({
+    id: "auto_signup_portal",
+    title: "🚀 Auto Sign-Up & Register Account",
+    contexts: ["editable", "page"]
+  });
+
+  chrome.contextMenus.create({
     id: "learn_portal_fields",
     title: "🧠 Learn & Save Fields on Current Page",
     contexts: ["editable", "page"]
@@ -118,6 +126,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.tabs.sendMessage(tab.id, { action: "TRIGGER_AUTOFILL", mode: "ALL" });
   } else if (info.menuItemId === "fill_portal_credentials") {
     chrome.tabs.sendMessage(tab.id, { action: "TRIGGER_AUTOFILL", mode: "CREDENTIALS" });
+  } else if (info.menuItemId === "auto_signup_portal") {
+    chrome.tabs.sendMessage(tab.id, { action: "TRIGGER_SIGNUP" });
   } else if (info.menuItemId === "learn_portal_fields") {
     chrome.tabs.sendMessage(tab.id, { action: "TRIGGER_LEARN" });
   } else if (info.menuItemId === "open_portal_options") {
@@ -125,7 +135,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-// 3. Handle Keyboard Shortcuts (Alt+F, Alt+G, Alt+L)
+// 3. Handle Keyboard Shortcuts (Alt+F, Alt+G, Alt+L, Alt+S)
 chrome.commands.onCommand.addListener((command) => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (!tabs || !tabs[0] || !tabs[0].id) return;
@@ -136,6 +146,8 @@ chrome.commands.onCommand.addListener((command) => {
       chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_AUTOFILL", mode: "CREDENTIALS" });
     } else if (command === "learn_fields") {
       chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_LEARN" });
+    } else if (command === "auto_signup") {
+      chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_SIGNUP" });
     }
   });
 });

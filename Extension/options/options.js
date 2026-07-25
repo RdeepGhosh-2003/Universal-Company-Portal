@@ -87,6 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Settings
     setCheck('set-highlight', p.settings?.highlightFilledFields !== false);
     setCheck('set-widget', p.settings?.showFloatingWidget !== false);
+    setCheck('set-terms', p.settings?.autoCheckTerms !== false);
+    setCheck('set-signup-submit', p.settings?.autoSubmitSignUp !== false);
     setCheck('set-onload', p.settings?.autoFillOnLoad === true);
 
     // Screening Q&A
@@ -177,6 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
       settings: {
         highlightFilledFields: getCheck('set-highlight'),
         showFloatingWidget: getCheck('set-widget'),
+        autoCheckTerms: getCheck('set-terms'),
+        autoSubmitSignUp: getCheck('set-signup-submit'),
         autoFillOnLoad: getCheck('set-onload')
       }
     };

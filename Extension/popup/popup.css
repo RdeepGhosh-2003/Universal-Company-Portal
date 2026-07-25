@@ -97,6 +97,18 @@ body {
   text-align: left;
 }
 
+.signup-btn {
+  background: linear-gradient(135deg, #059669, #047857);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+}
+
+.signup-btn:hover {
+  background: linear-gradient(135deg, #047857, #065f46);
+  transform: translateY(-1px);
+}
+
 .primary-btn {
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: #ffffff;

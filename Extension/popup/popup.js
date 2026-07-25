@@ -22,6 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Action: Auto Sign-Up & Register Account
+  const btnAutoSignUp = document.getElementById('btn-auto-signup');
+  if (btnAutoSignUp) {
+    btnAutoSignUp.addEventListener('click', () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0] && tabs[0].id) {
+          chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_SIGNUP" }, () => {
+            statusEl.textContent = "🚀 Auto Sign-Up & Submit signal sent!";
+            setTimeout(() => window.close(), 1200);
+          });
+        }
+      });
+    });
+  }
+
   // Action: Fill All Details
   btnFillAll.addEventListener('click', () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {

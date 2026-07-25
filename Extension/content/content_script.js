@@ -252,6 +252,88 @@
     }
   }
 
+  // Auto Sign-Up & Account Creation Engine
+  function performAutoSignUp() {
+    if (!currentProfile) {
+      chrome.runtime.sendMessage({ action: "GET_PROFILE" }, (response) => {
+        if (response && response.profile) {
+          currentProfile = response.profile;
+          executeSignUp();
+        }
+      });
+    } else {
+      executeSignUp();
+    }
+  }
+
+  function executeSignUp() {
+    let fieldsFilled = 0;
+
+    // 1. Auto Fill credentials & basic personal info
+    const inputs = document.querySelectorAll('input:not([type="hidden"]), select, textarea');
+    inputs.forEach(el => {
+      const match = window.UniversalMatcher.matchField(el, currentProfile, "ALL");
+      if (match && match.value) {
+        setNativeValue(el, match.value);
+        fieldsFilled++;
+        highlightField(el);
+      }
+    });
+
+    // 2. Auto-Check Terms & Conditions / Privacy Policy Checkboxes
+    if (currentProfile.settings && currentProfile.settings.autoCheckTerms !== false) {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        const labelText = window.UniversalMatcher.getElementLabelText(cb);
+        if (
+          labelText.includes('terms') || 
+          labelText.includes('privacy') || 
+          labelText.includes('agree') || 
+          labelText.includes('accept') || 
+          labelText.includes('condition') ||
+          labelText.includes('policy')
+        ) {
+          cb.checked = true;
+          cb.dispatchEvent(new Event('change', { bubbles: true }));
+          cb.dispatchEvent(new Event('click', { bubbles: true }));
+          highlightField(cb);
+          fieldsFilled++;
+        }
+      });
+    }
+
+    showToast(`🚀 Account registration form filled (${fieldsFilled} fields)!`, "success");
+
+    // 3. Auto-Submit Sign-Up Form if enabled
+    if (currentProfile.settings && currentProfile.settings.autoSubmitSignUp !== false) {
+      setTimeout(() => {
+        const submitBtn = findSignUpSubmitButton();
+        if (submitBtn) {
+          showToast(`🚀 Submitting account creation...`, "success");
+          submitBtn.click();
+        }
+      }, 900);
+    }
+  }
+
+  // Find Sign-Up Submit Button
+  function findSignUpSubmitButton() {
+    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], a.btn, [role="button"]'));
+    const targetKeywords = ['create account', 'sign up', 'signup', 'register', 'create profile', 'join now', 'complete registration', 'submit'];
+
+    for (const kw of targetKeywords) {
+      const btn = candidates.find(b => {
+        const txt = (b.textContent || b.value || b.getAttribute('aria-label') || '').toLowerCase().trim();
+        return txt.includes(kw);
+      });
+      if (btn) return btn;
+    }
+
+    // Fallback to first form submit button
+    const formSubmit = document.querySelector('form input[type="submit"], form button[type="submit"]');
+    return formSubmit || null;
+  }
+
   // Listen for Messages from Popup / Service Worker
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "TRIGGER_AUTOFILL") {
@@ -260,6 +342,9 @@
     } else if (request.action === "TRIGGER_LEARN") {
       performLearnFields();
       sendResponse({ status: "LEARNING_STARTED" });
+    } else if (request.action === "TRIGGER_SIGNUP") {
+      performAutoSignUp();
+      sendResponse({ status: "SIGNUP_STARTED" });
     } else if (request.action === "UPDATE_PROFILE") {
       currentProfile = request.profile;
       sendResponse({ status: "UPDATED" });
