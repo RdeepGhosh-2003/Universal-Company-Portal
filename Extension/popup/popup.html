@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal Auto-Fill Engine</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <div class="brand-text">
+          <h1>Auto-Fill Engine</h1>
+          <span class="version">v1.0.0</span>
+        </div>
+      </div>
+      <button id="btn-options" class="icon-btn" title="Profile & Password Manager">⚙️</button>
+    </header>
+
+    <!-- Main Actions -->
+    <section class="main-actions">
+      <button id="btn-fill-all" class="btn primary-btn">
+        <span class="btn-icon">⚡</span>
+        <div class="btn-text">
+          <span class="title">Auto-Fill Portal Form</span>
+          <span class="subtitle">Fill profile, work, education & Q&A (Alt+F)</span>
+        </div>
+      </button>
+
+      <button id="btn-fill-credentials" class="btn secondary-btn">
+        <span class="btn-icon">🔑</span>
+        <div class="btn-text">
+          <span class="title">Fill Gmail & Password</span>
+          <span class="subtitle">Fast login & account signup (Alt+G)</span>
+        </div>
+      </button>
+    </section>
+
+    <!-- Quick Copy Toolbar -->
+    <section class="quick-copy-section">
+      <h2>Quick Copy Details</h2>
+      <div class="copy-grid">
+        <button id="copy-email" class="copy-chip" title="Click to copy email">
+          <span class="chip-label">Email</span>
+          <span class="chip-value" id="val-email">...</span>
+        </button>
+        <button id="copy-password" class="copy-chip" title="Click to copy password">
+          <span class="chip-label">Password</span>
+          <span class="chip-value">••••••••</span>
+        </button>
+        <button id="copy-phone" class="copy-chip" title="Click to copy phone">
+          <span class="chip-label">Phone</span>
+          <span class="chip-value" id="val-phone">...</span>
+        </button>
+        <button id="copy-linkedin" class="copy-chip" title="Click to copy LinkedIn">
+          <span class="chip-label">LinkedIn</span>
+          <span class="chip-value">LinkedIn URL</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Status & Feedback Toast inside Popup -->
+    <div id="popup-status" class="popup-status">
+      Ready to auto-fill
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

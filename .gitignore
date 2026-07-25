@@ -1,0 +1,15 @@
+# OS & System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*$*
+
+# Environment & Local Configs
+.env
+.env.local
+*.log
+
+# Dependencies & Build Outputs
+node_modules/
+dist/
+build/

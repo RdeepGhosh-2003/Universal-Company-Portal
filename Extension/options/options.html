@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto-Fill Profile & Password Manager</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <h2>Auto-Fill Hub</h2>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="tab-credentials">🔑 Logins & Credentials</button>
+        <button class="nav-item" data-tab="tab-personal">👤 Personal Details</button>
+        <button class="nav-item" data-tab="tab-work">💼 Work & Target Role</button>
+        <button class="nav-item" data-tab="tab-education">🎓 Education</button>
+        <button class="nav-item" data-tab="tab-screening">❓ Screening Q&A</button>
+        <button class="nav-item" data-tab="tab-settings">⚙️ Settings & Backup</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="btn-save" class="btn primary-btn full-width">💾 Save Profile</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="content-header">
+        <h1 id="page-title">Logins & Portal Credentials</h1>
+        <div id="toast-banner" class="toast-banner hidden">Profile Saved Successfully!</div>
+      </header>
+
+      <form id="profile-form" class="form-container">
+
+        <!-- TAB 1: Credentials -->
+        <div id="tab-credentials" class="tab-content active">
+          <div class="section-card">
+            <h3>Portal Account Credentials</h3>
+            <p class="section-desc">Store your email and password used across company portals and sign-ups. Kept 100% local in your browser.</p>
+            
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="cred-email">Gmail / Login Email *</label>
+                <input type="email" id="cred-email" required placeholder="your.name@gmail.com">
+              </div>
+
+              <div class="form-group">
+                <label for="cred-password">Account Password *</label>
+                <input type="password" id="cred-password" placeholder="Enter default account password">
+              </div>
+
+              <div class="form-group">
+                <label for="cred-username">Default Username</label>
+                <input type="text" id="cred-username" placeholder="rajdeepghosh">
+              </div>
+
+              <div class="form-group">
+                <label for="cred-alt-email">Alternate Email</label>
+                <input type="email" id="cred-alt-email" placeholder="alternate@example.com">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: Personal Details -->
+        <div id="tab-personal" class="tab-content">
+          <div class="section-card">
+            <h3>Personal Information</h3>
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="personal-first-name">First Name</label>
+                <input type="text" id="personal-first-name" placeholder="Rajdeep">
+              </div>
+              <div class="form-group">
+                <label for="personal-last-name">Last Name</label>
+                <input type="text" id="personal-last-name" placeholder="Ghosh">
+              </div>
+              <div class="form-group">
+                <label for="personal-full-name">Full Name</label>
+                <input type="text" id="personal-full-name" placeholder="Rajdeep Ghosh">
+              </div>
+              <div class="form-group">
+                <label for="personal-phone">Phone / Mobile</label>
+                <input type="tel" id="personal-phone" placeholder="9876543210">
+              </div>
+              <div class="form-group full-width-grid">
+                <label for="personal-address">Street Address</label>
+                <input type="text" id="personal-address" placeholder="123 Tech Park Road">
+              </div>
+              <div class="form-group">
+                <label for="personal-city">City</label>
+                <input type="text" id="personal-city" placeholder="Bengaluru">
+              </div>
+              <div class="form-group">
+                <label for="personal-state">State / Province</label>
+                <input type="text" id="personal-state" placeholder="Karnataka">
+              </div>
+              <div class="form-group">
+                <label for="personal-country">Country</label>
+                <input type="text" id="personal-country" placeholder="India">
+              </div>
+              <div class="form-group">
+                <label for="personal-zip">Zip / Postal Code</label>
+                <input type="text" id="personal-zip" placeholder="560001">
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card margin-top">
+            <h3>Social & Online Links</h3>
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="personal-linkedin">LinkedIn URL</label>
+                <input type="url" id="personal-linkedin" placeholder="https://linkedin.com/in/username">
+              </div>
+              <div class="form-group">
+                <label for="personal-github">GitHub URL</label>
+                <input type="url" id="personal-github" placeholder="https://github.com/username">
+              </div>
+              <div class="form-group full-width-grid">
+                <label for="personal-portfolio">Portfolio / Website</label>
+                <input type="url" id="personal-portfolio" placeholder="https://yourportfolio.com">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: Work & Target Role -->
+        <div id="tab-work" class="tab-content">
+          <div class="section-card">
+            <h3>Current Role</h3>
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="work-current-title">Current Job Title</label>
+                <input type="text" id="work-current-title" placeholder="MIS Analyst">
+              </div>
+              <div class="form-group">
+                <label for="work-current-company">Current Company</label>
+                <input type="text" id="work-current-company" placeholder="Company Pvt Ltd">
+              </div>
+              <div class="form-group">
+                <label for="work-current-exp">Total Experience (Years)</label>
+                <input type="number" id="work-current-exp" placeholder="1" step="0.5">
+              </div>
+              <div class="form-group">
+                <label for="work-current-salary">Current CTC / Salary</label>
+                <input type="text" id="work-current-salary" placeholder="450000">
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card margin-top">
+            <h3>Target Role Preferences</h3>
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="work-target-title">Target Job Title</label>
+                <input type="text" id="work-target-title" placeholder="MIS Analyst / Data Analyst">
+              </div>
+              <div class="form-group">
+                <label for="work-target-location">Preferred Location</label>
+                <input type="text" id="work-target-location" placeholder="Bengaluru">
+              </div>
+              <div class="form-group">
+                <label for="work-target-salary">Expected Salary</label>
+                <input type="text" id="work-target-salary" placeholder="600000">
+              </div>
+              <div class="form-group">
+                <label for="work-target-notice">Notice Period</label>
+                <input type="text" id="work-target-notice" placeholder="Immediate / 15 Days / 30 Days">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: Education -->
+        <div id="tab-education" class="tab-content">
+          <div class="section-card">
+            <h3>Education History</h3>
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="edu-degree">Highest Degree</label>
+                <input type="text" id="edu-degree" placeholder="Bachelor of Technology / B.Sc">
+              </div>
+              <div class="form-group">
+                <label for="edu-major">Major / Specialization</label>
+                <input type="text" id="edu-major" placeholder="Computer Science / Information Technology">
+              </div>
+              <div class="form-group">
+                <label for="edu-university">University / College</label>
+                <input type="text" id="edu-university" placeholder="ABC University">
+              </div>
+              <div class="form-group">
+                <label for="edu-year">Graduation Year</label>
+                <input type="text" id="edu-year" placeholder="2022">
+              </div>
+              <div class="form-group">
+                <label for="edu-gpa">GPA / Percentage</label>
+                <input type="text" id="edu-gpa" placeholder="8.5 / 85%">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: Screening Q&A -->
+        <div id="tab-screening" class="tab-content">
+          <div class="section-card">
+            <div class="card-header-flex">
+              <div>
+                <h3>Custom Screening Questions & Answers</h3>
+                <p class="section-desc">Add keyword rules to automatically answer common portal screening questions.</p>
+              </div>
+              <button type="button" id="btn-add-qa" class="btn secondary-btn">+ Add Rule</button>
+            </div>
+            
+            <div id="screening-list" class="screening-list">
+              <!-- Dynamically populated Q&A rows -->
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 6: Settings & Backup -->
+        <div id="tab-settings" class="tab-content">
+          <div class="section-card">
+            <h3>Extension Behavior</h3>
+            <div class="setting-row">
+              <div>
+                <strong>Highlight filled fields</strong>
+                <p class="setting-desc">Briefly highlight matched form inputs with a mint outline when auto-filled.</p>
+              </div>
+              <input type="checkbox" id="set-highlight" checked>
+            </div>
+            <div class="setting-row">
+              <div>
+                <strong>Show floating widget button</strong>
+                <p class="setting-desc">Display a 1-click quick action button on application forms.</p>
+              </div>
+              <input type="checkbox" id="set-widget" checked>
+            </div>
+            <div class="setting-row">
+              <div>
+                <strong>Auto-fill forms on page load</strong>
+                <p class="setting-desc">Automatically trigger autofill as soon as a job application page loads.</p>
+              </div>
+              <input type="checkbox" id="set-onload">
+            </div>
+          </div>
+
+          <div class="section-card margin-top">
+            <h3>Backup & Restore</h3>
+            <div class="backup-actions">
+              <button type="button" id="btn-export" class="btn secondary-btn">📥 Export Profile JSON</button>
+              <button type="button" id="btn-import-trigger" class="btn secondary-btn">📤 Import Profile JSON</button>
+              <input type="file" id="file-import" accept=".json" style="display: none;">
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </main>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
