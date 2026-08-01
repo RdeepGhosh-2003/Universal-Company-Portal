@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Universal Auto-Fill Engine",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Auto-fill company job portals, account creation, auto sign-up, email & passwords, and screening details with Learn-as-You-Go memory.",
   "permissions": [
     "storage",
@@ -42,43 +42,6 @@
       "run_at": "document_idle"
     }
   ],
-  "commands": {
-    "fill_form": {
-      "suggested_key": {
-        "default": "Alt+F",
-        "mac": "Alt+F"
-      },
-      "description": "Instant trigger auto-fill on current page or form"
-    },
-    "fill_credentials": {
-      "suggested_key": {
-        "default": "Alt+G",
-        "mac": "Alt+G"
-      },
-      "description": "Instant fill Gmail and Password only"
-    },
-    "learn_fields": {
-      "suggested_key": {
-        "default": "Alt+L",
-        "mac": "Alt+L"
-      },
-      "description": "Scan and learn new form field inputs on current page"
-    },
-    "auto_signup": {
-      "suggested_key": {
-        "default": "Alt+S",
-        "mac": "Alt+S"
-      },
-      "description": "Auto sign-up, fill registration fields & submit account creation"
-    },
-    "start_automation": {
-      "suggested_key": {
-        "default": "Alt+A",
-        "mac": "Command+Shift+A"
-      },
-      "description": "Start Automation Engine: Find & click Apply on page"
-    }
-  },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",

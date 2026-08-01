@@ -160,26 +160,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-// 3. Handle Keyboard Shortcuts (Alt+F, Alt+G, Alt+L, Alt+S)
-chrome.commands.onCommand.addListener((command) => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs || !tabs[0] || !tabs[0].id) return;
-    
-    if (command === "fill_form") {
-      chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_AUTOFILL", mode: "ALL" });
-    } else if (command === "fill_credentials") {
-      chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_AUTOFILL", mode: "CREDENTIALS" });
-    } else if (command === "learn_fields") {
-      chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_LEARN" });
-    } else if (command === "auto_signup") {
-      chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_SIGNUP" });
-    } else if (command === "start_automation") {
-      chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION" });
-    }
-  });
-});
-
-// 4. Handle Incoming Messages from Content Script or Popup
+// 3. Handle Incoming Messages from Content Script or Popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "GET_PROFILE") {
     chrome.storage.local.get(["profile"], (result) => {

@@ -113,15 +113,15 @@ Universal Company Portal/
 
 ---
 
-## 🎹 Keyboard Shortcuts Summary
+## ⚡ Extension Action Buttons Summary
 
-| Shortcut | Action | Description |
+| Action Button | Feature | Description |
 | :--- | :--- | :--- |
-| **`Alt + A`** | **Start Automation Engine** | On-demand scan & click primary "Apply" button on job page |
-| **`Alt + S`** | **Master Action Routing** | Auto Sign-Up on new portals / Auto Log-In on registered domains |
-| **`Alt + F`** | **Auto-Fill Entire Form** | Auto-fills all candidate, work, education & screening fields on current page |
-| **`Alt + G`** | **Fill Gmail & Password** | Fills email and password fields specifically for sign-ups and logins |
-| **`Alt + L`** | **Learn & Save Fields** | Scans typed inputs on page and saves new field rules to Q&A memory |
+| **🔥 Start Automation Engine** | **Start Application** | On-demand scan & click primary "Apply" button on job page |
+| **🚀 Auto Sign-Up & Register** | **Master Action Routing** | Auto Sign-Up on new portals / Auto Log-In on registered domains |
+| **⚡ Auto-Fill Portal Form** | **Auto-Fill Entire Form** | Auto-fills all candidate, work, education & screening fields on current page |
+| **🔑 Fill Gmail & Password** | **Fill Credentials Only** | Fills email and password fields specifically for sign-ups and logins |
+| **🧠 Learn & Save Page Inputs** | **Learn & Save Fields** | Scans typed inputs on page and saves new field rules to Q&A memory |
 
 ---
 

@@ -2,6 +2,19 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.9.1] - 2026-08-01
+
+### 🛠️ Hotfix: Manifest Loading Error & Shortcut Cleanup
+- **Manifest Cleanup (`manifest.json`)**:
+  - Removed the entire `"commands"` block to resolve Chrome's 4-command limit load error (`MAX_COMMANDS_PER_EXTENSION_EXCEEDED`).
+  - Ensured strictly valid JSON with no trailing commas.
+- **Background Script Cleanup (`background/background.js`)**:
+  - Removed the `chrome.commands.onCommand.addListener` block since commands are no longer registered in manifest.
+- **Popup UI Text Cleanup (`popup/popup.html`)**:
+  - Removed keyboard shortcut indicators (`(Alt+A)`, `(Alt+S)`, `(Alt+F)`, `(Alt+G)`, `(Alt+L)`) from button subtexts to prevent user confusion.
+
+---
+
 ## [1.9.0] - 2026-08-01
 
 ### 🔥 On-Demand "Start Automation Engine" (`Alt+A`)
