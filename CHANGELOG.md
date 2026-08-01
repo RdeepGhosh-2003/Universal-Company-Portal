@@ -2,6 +2,19 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.7.0] - 2026-08-01
+
+### 🚀 Auto-Navigation Engine (Job Application Auto-Initiation)
+- **DOM Scanner & SPA Support (`content/content_script.js`)**:
+  - Implemented automatic DOM scanning and `MutationObserver` to auto-detect and click job application initiation buttons.
+  - **Target 1 (Job Description Page)**: Automatically detects and clicks buttons matching `"Apply Now"`, `"Apply for this job"`, or `"Apply"`.
+  - **Target 2 (Workday / Application Modals)**: Automatically detects and clicks `"Apply Manually"` when Workday modals appear to bypass resume parsing and launch the form immediately.
+  - Built-in MutationObserver debouncing and double-click prevention (`data-autofill-nav-clicked`) to support dynamic Single-Page Applications (Workday, Greenhouse, Lever, Indeed).
+- **Settings Toggle (`options/options.html`, `options/options.js`, `background/background.js`)**:
+  - Added new toggle in Profile Manager settings: **`Auto-Click 'Apply Now' and 'Apply Manually' on Job Pages`** (Default: `true`).
+
+---
+
 ## [1.6.0] - 2026-08-01
 
 ### 📅 Work Experience & Education Date Inputs Refactoring

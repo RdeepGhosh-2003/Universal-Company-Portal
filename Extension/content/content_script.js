@@ -19,6 +19,9 @@
         // Attach Agreement Checkbox Listeners
         setTimeout(() => setupAgreementCheckboxListeners(), 500);
 
+        // Auto-Navigation Engine
+        setTimeout(() => setupAutoNavigationEngine(), 600);
+
         // Attach Focus Listener for Email Fields
         document.addEventListener('focusin', (e) => {
           if (e.target && e.target.tagName === 'INPUT') {
@@ -444,6 +447,81 @@
         showToast(`⚡ Instant Email Auto-Filled!`, "success");
       }
     });
+  }
+
+  let autoNavObserver = null;
+  let navDebounceTimer = null;
+
+  // Auto-Navigation Engine: Scans DOM for "Apply Now" and "Apply Manually" buttons
+  function setupAutoNavigationEngine() {
+    if (currentProfile?.settings?.autoNavigateEnabled === false) return;
+
+    // Run initial scan
+    scanAndAutoNavigate();
+
+    // Setup MutationObserver for dynamic SPAs (Workday, Greenhouse, Lever, etc.)
+    if (!autoNavObserver) {
+      autoNavObserver = new MutationObserver(() => {
+        if (currentProfile?.settings?.autoNavigateEnabled === false) return;
+        clearTimeout(navDebounceTimer);
+        navDebounceTimer = setTimeout(scanAndAutoNavigate, 350);
+      });
+
+      autoNavObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
+  }
+
+  function scanAndAutoNavigate() {
+    if (currentProfile?.settings?.autoNavigateEnabled === false) return;
+
+    const candidates = Array.from(document.querySelectorAll('button, a, input[type="submit"], input[type="button"], [role="button"]'));
+
+    // Target 2 (High Priority - Workday / Application Modal): "Apply Manually"
+    const applyManuallyBtn = candidates.find(el => {
+      if (el.dataset.autofillNavClicked === "true") return false;
+      const text = (el.textContent || el.value || el.getAttribute('aria-label') || '').toLowerCase().trim();
+      return text.includes('apply manually') && isElementVisible(el);
+    });
+
+    if (applyManuallyBtn) {
+      applyManuallyBtn.dataset.autofillNavClicked = "true";
+      showToast(`⚡ Auto-Navigation: Clicking "Apply Manually" (Workday bypass)...`, "success");
+      setTimeout(() => {
+        applyManuallyBtn.click();
+      }, 300);
+      return;
+    }
+
+    // Target 1 (Job Description Page): "Apply Now", "Apply for this job", "Apply for position", or exact "Apply"
+    const applyNowBtn = candidates.find(el => {
+      if (el.dataset.autofillNavClicked === "true") return false;
+      const text = (el.textContent || el.value || el.getAttribute('aria-label') || '').toLowerCase().trim();
+
+      // Avoid search / filter / login / save / remove buttons
+      if (text.includes('filter') || text.includes('search') || text.includes('save') || text.includes('login') || text.includes('sign in') || text.includes('remove') || text.includes('delete')) return false;
+
+      const isExactApply = text === 'apply';
+      const isApplyNow = text.includes('apply now') || text.includes('apply for this job') || text.includes('apply for position') || text.includes('start application');
+
+      return (isExactApply || isApplyNow) && isElementVisible(el);
+    });
+
+    if (applyNowBtn) {
+      const btnText = (applyNowBtn.textContent || applyNowBtn.value || 'Apply Now').trim();
+      applyNowBtn.dataset.autofillNavClicked = "true";
+      showToast(`⚡ Auto-Navigation: Clicking "${btnText}" to initiate application...`, "success");
+      setTimeout(() => {
+        applyNowBtn.click();
+      }, 400);
+    }
+  }
+
+  function isElementVisible(el) {
+    if (!el) return false;
+    return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
   }
 
   // Listen for Messages from Popup / Service Worker

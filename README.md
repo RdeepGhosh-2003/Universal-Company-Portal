@@ -99,6 +99,12 @@ Universal Company Portal/
 - **Instant Email Auto-Fill**: Automatically fills your saved Gmail / Email into inputs containing label/subtext like `"Email Address *"`, `"This is how we'll communicate with you."`, `"Work Email"`, or `"Email ID"` as soon as the page loads or when you focus on the field!
 - **Auto-Submit on Agreement Check**: Whenever you click/check an agreement checkbox (`"I agree with..."`, `"Terms & Conditions"`, `"Privacy Policy"`), the extension automatically triggers the primary **Next**, **Submit**, **Continue**, **Save & Continue**, or **Create Account** button!
 
+### 7. 🚀 Auto-Navigation Engine (Job Application Auto-Initiation)
+- **Job Board Auto-Click**: Automatically detects and clicks `"Apply Now"`, `"Apply for this job"`, or `"Apply"` buttons on job description pages.
+- **Workday Modal Bypass**: Automatically clicks `"Apply Manually"` when Workday modals pop up to bypass resume parsing and open form inputs directly.
+- **SPA Support**: Utilizes a debounced `MutationObserver` to support dynamic Single-Page Applications (Workday, Greenhouse, Lever, Indeed).
+- **Settings Toggle**: Enable/disable under Profile Manager -> Settings -> **`Auto-Click 'Apply Now' and 'Apply Manually' on Job Pages`**.
+
 ---
 
 ## 🎹 Keyboard Shortcuts Summary

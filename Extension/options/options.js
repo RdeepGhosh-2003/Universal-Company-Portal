@@ -157,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Settings
     setCheck('set-highlight', p.settings?.highlightFilledFields !== false);
+    setCheck('set-auto-nav', p.settings?.autoNavigateEnabled !== false);
     setCheck('set-instant-email', p.settings?.instantEmailAutoFill !== false);
     setCheck('set-agree-submit', p.settings?.autoSubmitOnAgreement !== false);
     setCheck('set-terms', p.settings?.autoCheckTerms !== false);
@@ -443,6 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
       screening: newScreening,
       settings: {
         highlightFilledFields: getCheck('set-highlight'),
+        autoNavigateEnabled: getCheck('set-auto-nav'),
         instantEmailAutoFill: getCheck('set-instant-email'),
         autoSubmitOnAgreement: getCheck('set-agree-submit'),
         autoCheckTerms: getCheck('set-terms'),
