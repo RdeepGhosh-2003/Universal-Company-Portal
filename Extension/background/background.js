@@ -79,15 +79,19 @@ const DEFAULT_PROFILE = {
     autoSubmitOnAgreement: true,
     instantEmailAutoFill: true,
     highlightFilledFields: true
-  }
+  },
+  registeredDomains: []
 };
 
 // 1. Initialize Context Menu and Storage on Install
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.get(["profile"], (result) => {
-    if (!result.profile) {
-      chrome.storage.local.set({ profile: DEFAULT_PROFILE });
+  chrome.storage.local.get(["profile", "registeredDomains"], (result) => {
+    const profile = result.profile || DEFAULT_PROFILE;
+    if (!profile.registeredDomains) {
+      profile.registeredDomains = [];
     }
+    const registeredDomains = result.registeredDomains || profile.registeredDomains || [];
+    chrome.storage.local.set({ profile, registeredDomains });
   });
 
   // Create Context Menus
@@ -204,5 +208,44 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       title: request.title || "Universal Auto-Fill Engine",
       message: request.message || "Auto-fill completed!"
     });
+  } else if (request.action === "GET_REGISTERED_DOMAINS") {
+    chrome.storage.local.get(["registeredDomains", "profile"], (result) => {
+      const list = result.registeredDomains || result.profile?.registeredDomains || [];
+      sendResponse({ registeredDomains: list });
+    });
+    return true;
+  } else if (request.action === "REGISTER_DOMAIN") {
+    const domain = (request.domain || '').toLowerCase().trim();
+    if (!domain) {
+      sendResponse({ status: "ERROR", message: "Invalid domain" });
+      return true;
+    }
+
+    chrome.storage.local.get(["registeredDomains", "profile"], (result) => {
+      const profile = result.profile || DEFAULT_PROFILE;
+      let list = result.registeredDomains || profile.registeredDomains || [];
+      
+      if (!list.includes(domain)) {
+        list.push(domain);
+      }
+      
+      profile.registeredDomains = list;
+      chrome.storage.local.set({ registeredDomains: list, profile }, () => {
+        sendResponse({ status: "SUCCESS", registeredDomains: list });
+      });
+    });
+    return true;
+  } else if (request.action === "DELETE_REGISTERED_DOMAIN") {
+    const domain = (request.domain || '').toLowerCase().trim();
+    chrome.storage.local.get(["registeredDomains", "profile"], (result) => {
+      const profile = result.profile || DEFAULT_PROFILE;
+      let list = (result.registeredDomains || profile.registeredDomains || []).filter(d => d.toLowerCase() !== domain);
+      
+      profile.registeredDomains = list;
+      chrome.storage.local.set({ registeredDomains: list, profile }, () => {
+        sendResponse({ status: "SUCCESS", registeredDomains: list });
+      });
+    });
+    return true;
   }
 });

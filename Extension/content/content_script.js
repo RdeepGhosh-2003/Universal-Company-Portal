@@ -236,21 +236,51 @@
     }
   }
 
-  // Auto Sign-Up & Account Creation Engine
+  // Master Action Engine (Alt+S): Intelligent Sign-Up & Auto-Login Routing
   function performAutoSignUp() {
     if (!currentProfile) {
       chrome.runtime.sendMessage({ action: "GET_PROFILE" }, (response) => {
         if (response && response.profile) {
           currentProfile = response.profile;
-          executeSignUp();
+          executeMasterAction();
         }
       });
     } else {
-      executeSignUp();
+      executeMasterAction();
     }
   }
 
-  function executeSignUp() {
+  function executeMasterAction() {
+    chrome.runtime.sendMessage({ action: "GET_REGISTERED_DOMAINS" }, (response) => {
+      const registeredDomains = (response && response.registeredDomains) ? response.registeredDomains : (currentProfile?.registeredDomains || []);
+      const hostname = window.location.hostname.toLowerCase();
+
+      const isRegistered = registeredDomains.some(d => d.toLowerCase() && (hostname.includes(d.toLowerCase()) || d.toLowerCase().includes(hostname)));
+
+      if (isRegistered) {
+        // LOGIN MODE: Auto-fill saved credentials and submit login
+        executeLoginFlow(hostname);
+      } else {
+        // SIGN-UP MODE: Auto-fill registration, check terms, submit & register domain
+        executeSignUpFlow(hostname);
+      }
+    });
+  }
+
+  function executeLoginFlow(hostname) {
+    executeFill("CREDENTIALS");
+    showToast(`🔑 Recognized Portal (${hostname})! Auto-logging in...`, "success");
+
+    setTimeout(() => {
+      const loginBtn = findLoginSubmitButton();
+      if (loginBtn) {
+        showToast(`🔑 Logging into ${hostname}...`, "success");
+        loginBtn.click();
+      }
+    }, 600);
+  }
+
+  function executeSignUpFlow(hostname) {
     let fieldsFilled = 0;
 
     // 1. Auto Fill credentials & basic personal info
@@ -286,9 +316,12 @@
       });
     }
 
-    showToast(`🚀 Account registration form filled (${fieldsFilled} fields)!`, "success");
+    // 3. Register hostname to Domain Memory Engine
+    chrome.runtime.sendMessage({ action: "REGISTER_DOMAIN", domain: hostname });
 
-    // 3. Auto-Submit Sign-Up Form if enabled
+    showToast(`🚀 Account registration filled! Saved ${hostname} to Memory Engine.`, "success");
+
+    // 4. Auto-Submit Sign-Up Form if enabled
     if (currentProfile.settings && currentProfile.settings.autoSubmitSignUp !== false) {
       setTimeout(() => {
         const submitBtn = findSignUpSubmitButton();
@@ -298,6 +331,23 @@
         }
       }, 900);
     }
+  }
+
+  // Find Login Submit Button
+  function findLoginSubmitButton() {
+    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], a.btn, [role="button"]'));
+    const targetKeywords = ['log in', 'login', 'sign in', 'signin', 'log-in', 'sign-in', 'continue', 'submit'];
+
+    for (const kw of targetKeywords) {
+      const btn = candidates.find(b => {
+        const txt = (b.textContent || b.value || b.getAttribute('aria-label') || '').toLowerCase().trim();
+        return txt.includes(kw) && b.offsetWidth > 0 && b.offsetHeight > 0;
+      });
+      if (btn) return btn;
+    }
+
+    const formSubmit = document.querySelector('form input[type="submit"], form button[type="submit"]');
+    return formSubmit || null;
   }
 
   // Find Sign-Up Submit Button

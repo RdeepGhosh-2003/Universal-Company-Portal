@@ -293,6 +293,55 @@ body {
   background: rgba(239, 68, 68, 0.15);
 }
 
+/* Registered Domains List */
+.registered-domains-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.domain-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--input-bg);
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+}
+
+.domain-name-tag {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.domain-delete-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.domain-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.empty-domain-state {
+  font-size: 13px;
+  color: var(--text-sub);
+  padding: 10px 0;
+  font-style: italic;
+}
+
 /* Settings & Backup */
 .setting-row {
   display: flex;

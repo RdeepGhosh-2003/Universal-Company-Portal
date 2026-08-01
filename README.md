@@ -88,12 +88,11 @@ Universal Company Portal/
   - Right-click and choose **`🧠 Learn & Save Fields on Current Page`**.
 - The extension automatically extracts keywords from the field labels, pairs them with your typed answer, and saves them to your Q&A memory. Next time you visit any portal with similar questions, it auto-fills automatically!
 
-### 5. 🚀 Auto Sign-Up & Account Registration Engine
-- When creating an account on any company portal, career site, or sign-up form:
-  - Press **`Alt + S`** on your keyboard, OR
-  - Click **`🚀 Auto Sign-Up & Register`** in the popup menu, OR
-  - Right-click and choose **`🚀 Auto Sign-Up & Register Account`**.
-- Automatically populates email, password, confirm password, name, phone, auto-checks required Terms & Conditions checkboxes, and clicks the account creation button!
+### 5. 🌐 Domain Memory Engine & Master Action Workflow (`Alt + S`)
+- Pressing **`Alt + S`** (or clicking **`🚀 Auto Sign-Up & Register`**) executes intelligent Master Action routing:
+  - **Unregistered Domain (Sign-Up Mode)**: Fills registration details, checks Terms & Conditions, submits account creation, and saves the portal hostname to the Domain Memory Engine.
+  - **Registered Domain (Login Mode)**: Automatically fills saved Gmail & Password credentials and clicks the primary **Log In** / **Sign In** button!
+- **Manage Registered Portals**: View, manually add (`+ Register Domain`), or delete registered domains anytime under the *Logins & Credentials* tab in the Profile Manager.
 
 ### 6. ⚡ Instant Email Auto-Fill & Agreement Auto-Submit
 - **Instant Email Auto-Fill**: Automatically fills your saved Gmail / Email into inputs containing label/subtext like `"Email Address *"`, `"This is how we'll communicate with you."`, `"Work Email"`, or `"Email ID"` as soon as the page loads or when you focus on the field!
@@ -105,7 +104,7 @@ Universal Company Portal/
 
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
-| **`Alt + S`** | **Auto Sign-Up & Submit** | Auto-fills registration, checks Terms & submits account creation |
+| **`Alt + S`** | **Master Action Routing** | Auto Sign-Up on new portals / Auto Log-In on registered domains |
 | **`Alt + F`** | **Auto-Fill Entire Form** | Auto-fills all candidate, work, education & screening fields on current page |
 | **`Alt + G`** | **Fill Gmail & Password** | Fills email and password fields specifically for sign-ups and logins |
 | **`Alt + L`** | **Learn & Save Fields** | Scans typed inputs on page and saves new field rules to Q&A memory |

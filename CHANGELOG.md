@@ -2,6 +2,23 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.5.0] - 2026-08-01
+
+### 🌐 Domain Memory Engine & Master Action Routing (`Alt+S`)
+- **Domain Memory Engine (`background/background.js` & `content/content_script.js`)**:
+  - Automatically initializes and manages a `registeredDomains` array in `chrome.storage.local`.
+  - Automatically registers the active portal hostname after executing a successful account sign-up flow.
+- **Intelligent Master Action Workflow (`Alt+S`)**:
+  - Bound **`Alt+S`** command, popup sign-up button, and context menu to the new Master Action routing engine.
+  - **Login Mode (Registered Domain)**: If current hostname exists in `registeredDomains`, automatically pre-fills saved Gmail/password and clicks the primary **"Log In"** / **"Sign In"** button!
+  - **Sign-Up Mode (Unregistered Domain)**: If domain is not registered, completes registration details, checks Terms & Conditions, submits account creation, and registers domain to memory.
+- **Registered Portals UI (`options/options.html` & `options/options.js`)**:
+  - Added new section card **"Registered Portals (Domain Memory Engine)"** in Profile Manager.
+  - Dynamically renders all registered domains with a **Delete** (`🗑️ Delete`) button for easy domain management.
+  - Added **`+ Register Domain`** button allowing users to manually register portal hostnames.
+
+---
+
 ## [1.4.0] - 2026-08-01
 
 ### 💼 Multi-Work Experience Manager & UI Streamlining

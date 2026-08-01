@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnAddWork = document.getElementById('btn-add-work');
   const screeningList = document.getElementById('screening-list');
   const workExperienceList = document.getElementById('work-experience-list');
+  const registeredDomainsList = document.getElementById('registered-domains-list');
+  const btnAddDomain = document.getElementById('btn-add-domain');
   const btnExport = document.getElementById('btn-export');
   const btnImportTrigger = document.getElementById('btn-import-trigger');
   const fileImport = document.getElementById('file-import');
@@ -37,13 +39,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 2. Load Profile Data
+  // 2. Load Profile Data & Registered Domains
   function loadProfile() {
-    chrome.storage.local.get(['profile'], (result) => {
+    chrome.storage.local.get(['profile', 'registeredDomains'], (result) => {
       if (result.profile) {
         currentProfileData = result.profile;
         populateForm(currentProfileData);
       }
+      const domains = result.registeredDomains || result.profile?.registeredDomains || [];
+      renderRegisteredDomains(domains);
+    });
+  }
+
+  function renderRegisteredDomains(domainsArray) {
+    if (!registeredDomainsList) return;
+    registeredDomainsList.innerHTML = '';
+
+    if (!domainsArray || domainsArray.length === 0) {
+      registeredDomainsList.innerHTML = `
+        <div class="empty-domain-state">No registered domains yet. Auto sign-up (Alt+S) will automatically register portals here!</div>
+      `;
+      return;
+    }
+
+    domainsArray.forEach(domain => {
+      const item = document.createElement('div');
+      item.className = 'domain-item';
+      item.innerHTML = `
+        <span class="domain-name-tag">🌐 ${escapeHtml(domain)}</span>
+        <button type="button" class="domain-delete-btn" title="Remove domain registration">🗑️ Delete</button>
+      `;
+
+      item.querySelector('.domain-delete-btn').addEventListener('click', () => {
+        chrome.runtime.sendMessage({ action: "DELETE_REGISTERED_DOMAIN", domain: domain }, (res) => {
+          showToastBanner(`Removed ${domain} from Registered Portals`);
+          renderRegisteredDomains(res.registeredDomains || []);
+        });
+      });
+
+      registeredDomainsList.appendChild(item);
     });
   }
 
@@ -291,6 +325,20 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnAddWork) {
     btnAddWork.addEventListener('click', () => {
       addWorkItemRow();
+    });
+  }
+
+  // Add Domain Button
+  if (btnAddDomain) {
+    btnAddDomain.addEventListener('click', () => {
+      const input = prompt("Enter portal domain or hostname to register (e.g. linkedin.com or careers.company.com):");
+      if (input && input.trim()) {
+        const domain = input.trim().toLowerCase();
+        chrome.runtime.sendMessage({ action: "REGISTER_DOMAIN", domain }, (res) => {
+          showToastBanner(`Registered ${domain} into Memory Engine!`);
+          renderRegisteredDomains(res.registeredDomains || []);
+        });
+      }
     });
   }
 
