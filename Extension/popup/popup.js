@@ -22,6 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Action: Start Automation Engine
+  const btnStartAutomation = document.getElementById('btn-start-automation');
+  if (btnStartAutomation) {
+    btnStartAutomation.addEventListener('click', () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0] && tabs[0].id) {
+          chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION" }, () => {
+            statusEl.textContent = "🔥 Start Automation signal sent!";
+            setTimeout(() => window.close(), 1200);
+          });
+        }
+      });
+    });
+  }
+
   // Action: Auto Sign-Up & Register Account
   const btnAutoSignUp = document.getElementById('btn-auto-signup');
   if (btnAutoSignUp) {

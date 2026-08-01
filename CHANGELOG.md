@@ -2,6 +2,23 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.9.0] - 2026-08-01
+
+### 🔥 On-Demand "Start Automation Engine" (`Alt+A`)
+- **On-Demand Initiation Button (`popup/popup.html`, `popup/popup.js`, `popup/popup.css`)**:
+  - Added prominent action button **"Start Automation Engine"** at the top of the popup UI.
+  - Styled with a warm sunrise orange/red gradient (`linear-gradient(135deg, #ff512f, #dd2476)`).
+  - Subtext: *"Find & click 'Apply' on this page (Alt+A)"*.
+- **Keyboard Shortcut (`manifest.json` & `background/background.js`)**:
+  - Registered **`Alt+A`** (Mac: `Command+Shift+A`) command to trigger `START_AUTOMATION`.
+- **Content Script Refactoring (`content/content_script.js`)**:
+  - Removed aggressive automatic scanning for generic "Apply Now" buttons on page load to prevent unwanted clicks while browsing.
+  - Retained automated **Workday Modal Bypass** (`"Apply Manually"` auto-click) on dynamic modals.
+  - Implemented `performStartAutomation()` with **Smart Selector Logic**: prioritizes buttons within `<main>`, `article`, or main job detail containers over sidebars and headers.
+  - Added clear console warnings (`console.warn`) and toast feedback if no "Apply" button is found on page.
+
+---
+
 ## [1.8.0] - 2026-08-01
 
 ### 🔑 Auto-Auth Trigger (Automatic Master Action Execution)

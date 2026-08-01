@@ -173,6 +173,8 @@ chrome.commands.onCommand.addListener((command) => {
       chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_LEARN" });
     } else if (command === "auto_signup") {
       chrome.tabs.sendMessage(tabs[0].id, { action: "TRIGGER_SIGNUP" });
+    } else if (command === "start_automation") {
+      chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION" });
     }
   });
 });

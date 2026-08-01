@@ -452,11 +452,11 @@
   let autoNavObserver = null;
   let navDebounceTimer = null;
 
-  // Auto-Navigation Engine & Auto-Auth Trigger
+  // Auto-Navigation Engine & Workday Bypass
   function setupAutoNavigationEngine() {
-    if (currentProfile?.settings?.autoNavigateEnabled !== false) {
-      scanAndAutoNavigate();
-    }
+    // Scan for high-priority Workday "Apply Manually" bypass
+    scanWorkdayBypass();
+
     if (currentProfile?.settings?.autoAuthEnabled !== false) {
       checkAndTriggerAutoAuth();
     }
@@ -466,9 +466,7 @@
       autoNavObserver = new MutationObserver(() => {
         clearTimeout(navDebounceTimer);
         navDebounceTimer = setTimeout(() => {
-          if (currentProfile?.settings?.autoNavigateEnabled !== false) {
-            scanAndAutoNavigate();
-          }
+          scanWorkdayBypass();
           if (currentProfile?.settings?.autoAuthEnabled !== false) {
             checkAndTriggerAutoAuth();
           }
@@ -479,6 +477,69 @@
         childList: true,
         subtree: true
       });
+    }
+  }
+
+  // Workday Modal Bypass: "Apply Manually"
+  function scanWorkdayBypass() {
+    if (currentProfile?.settings?.autoNavigateEnabled === false) return;
+
+    const candidates = Array.from(document.querySelectorAll('button, a, input[type="submit"], input[type="button"], [role="button"]'));
+
+    const applyManuallyBtn = candidates.find(el => {
+      if (el.dataset.autofillNavClicked === "true") return false;
+      const text = (el.textContent || el.value || el.getAttribute('aria-label') || '').toLowerCase().trim();
+      return text.includes('apply manually') && isElementVisible(el);
+    });
+
+    if (applyManuallyBtn) {
+      applyManuallyBtn.dataset.autofillNavClicked = "true";
+      showToast(`⚡ Workday Bypass: Auto-clicking "Apply Manually"...`, "success");
+      setTimeout(() => {
+        applyManuallyBtn.click();
+      }, 300);
+    }
+  }
+
+  // On-Demand Automation Trigger (Alt+A / Start Automation Button)
+  function performStartAutomation() {
+    // Smart Selector: Prioritize main content containers over sidebars and headers
+    let scopeContainers = Array.from(document.querySelectorAll('main, article, [role="main"], #content, .job-details, .job-description'));
+    if (scopeContainers.length === 0) {
+      scopeContainers = [document.body];
+    }
+
+    let candidates = [];
+    scopeContainers.forEach(container => {
+      candidates.push(...Array.from(container.querySelectorAll('button, a, input[type="submit"], input[type="button"], [role="button"]')));
+    });
+
+    if (candidates.length === 0) {
+      candidates = Array.from(document.querySelectorAll('button, a, input[type="submit"], input[type="button"], [role="button"]'));
+    }
+
+    const applyBtn = candidates.find(el => {
+      const text = (el.textContent || el.value || el.getAttribute('aria-label') || '').toLowerCase().trim();
+
+      // Avoid search / filter / login / save / remove control buttons
+      if (text.includes('filter') || text.includes('search') || text.includes('save') || text.includes('login') || text.includes('sign in') || text.includes('remove') || text.includes('delete')) return false;
+
+      const isExactApply = text === 'apply';
+      const isApplyNow = text.includes('apply now') || text.includes('apply for this job') || text.includes('apply for position') || text.includes('start application') || text.includes('apply manually');
+
+      return (isExactApply || isApplyNow) && isElementVisible(el);
+    });
+
+    if (applyBtn) {
+      const btnText = (applyBtn.textContent || applyBtn.value || 'Apply Now').trim();
+      applyBtn.dataset.autofillNavClicked = "true";
+      showToast(`🔥 Start Automation: Clicking "${btnText}"...`, "success");
+      setTimeout(() => {
+        applyBtn.click();
+      }, 300);
+    } else {
+      console.warn("Universal Auto-Fill Engine: No 'Apply' button found on current page.");
+      showToast(`⚠️ No 'Apply' button found on current page.`, "error");
     }
   }
 
@@ -509,51 +570,6 @@
     }
   }
 
-  function scanAndAutoNavigate() {
-    if (currentProfile?.settings?.autoNavigateEnabled === false) return;
-
-    const candidates = Array.from(document.querySelectorAll('button, a, input[type="submit"], input[type="button"], [role="button"]'));
-
-    // Target 2 (High Priority - Workday / Application Modal): "Apply Manually"
-    const applyManuallyBtn = candidates.find(el => {
-      if (el.dataset.autofillNavClicked === "true") return false;
-      const text = (el.textContent || el.value || el.getAttribute('aria-label') || '').toLowerCase().trim();
-      return text.includes('apply manually') && isElementVisible(el);
-    });
-
-    if (applyManuallyBtn) {
-      applyManuallyBtn.dataset.autofillNavClicked = "true";
-      showToast(`⚡ Auto-Navigation: Clicking "Apply Manually" (Workday bypass)...`, "success");
-      setTimeout(() => {
-        applyManuallyBtn.click();
-      }, 300);
-      return;
-    }
-
-    // Target 1 (Job Description Page): "Apply Now", "Apply for this job", "Apply for position", or exact "Apply"
-    const applyNowBtn = candidates.find(el => {
-      if (el.dataset.autofillNavClicked === "true") return false;
-      const text = (el.textContent || el.value || el.getAttribute('aria-label') || '').toLowerCase().trim();
-
-      // Avoid search / filter / login / save / remove buttons
-      if (text.includes('filter') || text.includes('search') || text.includes('save') || text.includes('login') || text.includes('sign in') || text.includes('remove') || text.includes('delete')) return false;
-
-      const isExactApply = text === 'apply';
-      const isApplyNow = text.includes('apply now') || text.includes('apply for this job') || text.includes('apply for position') || text.includes('start application');
-
-      return (isExactApply || isApplyNow) && isElementVisible(el);
-    });
-
-    if (applyNowBtn) {
-      const btnText = (applyNowBtn.textContent || applyNowBtn.value || 'Apply Now').trim();
-      applyNowBtn.dataset.autofillNavClicked = "true";
-      showToast(`⚡ Auto-Navigation: Clicking "${btnText}" to initiate application...`, "success");
-      setTimeout(() => {
-        applyNowBtn.click();
-      }, 400);
-    }
-  }
-
   function isElementVisible(el) {
     if (!el) return false;
     return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
@@ -561,7 +577,10 @@
 
   // Listen for Messages from Popup / Service Worker
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "TRIGGER_AUTOFILL") {
+    if (request.action === "START_AUTOMATION") {
+      performStartAutomation();
+      sendResponse({ status: "AUTOMATION_STARTED" });
+    } else if (request.action === "TRIGGER_AUTOFILL") {
       performAutoFill(request.mode || "ALL");
       sendResponse({ status: "STARTED" });
     } else if (request.action === "TRIGGER_LEARN") {

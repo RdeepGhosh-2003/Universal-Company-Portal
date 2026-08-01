@@ -99,10 +99,10 @@ Universal Company Portal/
 - **Instant Email Auto-Fill**: Automatically fills your saved Gmail / Email into inputs containing label/subtext like `"Email Address *"`, `"This is how we'll communicate with you."`, `"Work Email"`, or `"Email ID"` as soon as the page loads or when you focus on the field!
 - **Auto-Submit on Agreement Check**: Whenever you click/check an agreement checkbox (`"I agree with..."`, `"Terms & Conditions"`, `"Privacy Policy"`), the extension automatically triggers the primary **Next**, **Submit**, **Continue**, **Save & Continue**, or **Create Account** button!
 
-### 7. 🚀 Auto-Navigation Engine (Job Application Auto-Initiation)
-- **Job Board Auto-Click**: Automatically detects and clicks `"Apply Now"`, `"Apply for this job"`, or `"Apply"` buttons on job description pages.
-- **Workday Modal Bypass**: Automatically clicks `"Apply Manually"` when Workday modals pop up to bypass resume parsing and open form inputs directly.
-- **SPA Support**: Utilizes a debounced `MutationObserver` to support dynamic Single-Page Applications (Workday, Greenhouse, Lever, Indeed).
+### 7. 🔥 On-Demand "Start Automation Engine" (`Alt + A`)
+- **On-Demand Initiation**: Press **`Alt + A`** or click **`🔥 Start Automation Engine`** in the popup to find and click the primary "Apply" or "Apply Now" button on any job board page.
+- **Smart Selector**: Prioritizes main content area (`<main>`, `article`) over headers, sidebars, or control buttons.
+- **Workday Modal Bypass**: Retains automated `"Apply Manually"` auto-click when Workday modals appear to bypass resume parsing.
 - **Settings Toggle**: Enable/disable under Profile Manager -> Settings -> **`Auto-Click 'Apply Now' and 'Apply Manually' on Job Pages`**.
 
 ### 8. 🔑 Auto-Auth Trigger (Automatic Master Action Execution)
@@ -117,6 +117,7 @@ Universal Company Portal/
 
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
+| **`Alt + A`** | **Start Automation Engine** | On-demand scan & click primary "Apply" button on job page |
 | **`Alt + S`** | **Master Action Routing** | Auto Sign-Up on new portals / Auto Log-In on registered domains |
 | **`Alt + F`** | **Auto-Fill Entire Form** | Auto-fills all candidate, work, education & screening fields on current page |
 | **`Alt + G`** | **Fill Gmail & Password** | Fills email and password fields specifically for sign-ups and logins |
