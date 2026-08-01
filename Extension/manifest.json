@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Universal Auto-Fill Engine",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Auto-fill company job portals, account creation, auto sign-up, email & passwords, and screening details with Learn-as-You-Go memory.",
   "permissions": [
     "storage",

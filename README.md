@@ -105,6 +105,12 @@ Universal Company Portal/
 - **SPA Support**: Utilizes a debounced `MutationObserver` to support dynamic Single-Page Applications (Workday, Greenhouse, Lever, Indeed).
 - **Settings Toggle**: Enable/disable under Profile Manager -> Settings -> **`Auto-Click 'Apply Now' and 'Apply Manually' on Job Pages`**.
 
+### 8. 🔑 Auto-Auth Trigger (Automatic Master Action Execution)
+- **Automatic Execution**: Detects account creation / login forms (`<input type="password">`, "Create Account", "Sign In", "Verify New Password") and triggers Master Action routing (`Alt+S`) automatically.
+- **Workday Account Support**: Fills Email, Password, and "Verify New Password" fields seamlessly.
+- **Loop Protection**: Uses a `sessionStorage` flag to guarantee execution runs **exactly once** per page load.
+- **Settings Toggle**: Enable/disable under Profile Manager -> Settings -> **`Auto-Trigger Login & Sign-Up on Auth Pages`**.
+
 ---
 
 ## 🎹 Keyboard Shortcuts Summary

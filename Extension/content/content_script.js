@@ -19,7 +19,7 @@
         // Attach Agreement Checkbox Listeners
         setTimeout(() => setupAgreementCheckboxListeners(), 500);
 
-        // Auto-Navigation Engine
+        // Auto-Navigation Engine & Auto-Auth Trigger
         setTimeout(() => setupAutoNavigationEngine(), 600);
 
         // Attach Focus Listener for Email Fields
@@ -452,25 +452,60 @@
   let autoNavObserver = null;
   let navDebounceTimer = null;
 
-  // Auto-Navigation Engine: Scans DOM for "Apply Now" and "Apply Manually" buttons
+  // Auto-Navigation Engine & Auto-Auth Trigger
   function setupAutoNavigationEngine() {
-    if (currentProfile?.settings?.autoNavigateEnabled === false) return;
-
-    // Run initial scan
-    scanAndAutoNavigate();
+    if (currentProfile?.settings?.autoNavigateEnabled !== false) {
+      scanAndAutoNavigate();
+    }
+    if (currentProfile?.settings?.autoAuthEnabled !== false) {
+      checkAndTriggerAutoAuth();
+    }
 
     // Setup MutationObserver for dynamic SPAs (Workday, Greenhouse, Lever, etc.)
     if (!autoNavObserver) {
       autoNavObserver = new MutationObserver(() => {
-        if (currentProfile?.settings?.autoNavigateEnabled === false) return;
         clearTimeout(navDebounceTimer);
-        navDebounceTimer = setTimeout(scanAndAutoNavigate, 350);
+        navDebounceTimer = setTimeout(() => {
+          if (currentProfile?.settings?.autoNavigateEnabled !== false) {
+            scanAndAutoNavigate();
+          }
+          if (currentProfile?.settings?.autoAuthEnabled !== false) {
+            checkAndTriggerAutoAuth();
+          }
+        }, 350);
       });
 
       autoNavObserver.observe(document.body, {
         childList: true,
         subtree: true
       });
+    }
+  }
+
+  function checkAndTriggerAutoAuth() {
+    if (currentProfile?.settings?.autoAuthEnabled === false) return;
+    if (sessionStorage.getItem('autoAuthTriggered') === 'true') return;
+
+    const passwordInputs = Array.from(document.querySelectorAll('input[type="password"]'));
+    const isPasswordVisible = passwordInputs.some(el => isElementVisible(el));
+
+    const pageText = (document.body.innerText || '').toLowerCase();
+    const hasAuthForm = isPasswordVisible ||
+      pageText.includes('create account') ||
+      pageText.includes('sign in') ||
+      pageText.includes('log in') ||
+      pageText.includes('register your account') ||
+      pageText.includes('verify new password') ||
+      pageText.includes('verify password');
+
+    if (hasAuthForm) {
+      // Mark session flag immediately to ensure auto-auth runs exactly ONCE per page load
+      sessionStorage.setItem('autoAuthTriggered', 'true');
+
+      showToast(`🔑 Auth Page Detected! Auto-triggering Login / Sign-Up (Alt+S)...`, "success");
+      setTimeout(() => {
+        performAutoSignUp();
+      }, 500);
     }
   }
 

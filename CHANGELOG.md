@@ -2,6 +2,22 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.8.0] - 2026-08-01
+
+### 🔑 Auto-Auth Trigger (Automatic Master Action Execution)
+- **Automatic Auth Form Detection (`content/content_script.js`)**:
+  - Scans DOM and `MutationObserver` stream for password inputs (`<input type="password">`) or form titles matching `"Create Account"`, `"Sign In"`, `"Log In"`, `"Register"`, `"Verify Password"`, `"Verify New Password"`.
+  - Automatically executes the Master Action (`Alt+S` routing logic) as soon as an authentication form renders, eliminating manual shortcut presses.
+- **Enhanced Field Matching (`content/matcher.js`)**:
+  - Added explicit target support for `"Verify New Password"` and `"Confirm Password"` fields commonly found on Workday account creation forms.
+- **Strict Debouncing & Infinite Loop Protection (`content/content_script.js`)**:
+  - Implemented `sessionStorage.setItem('autoAuthTriggered', 'true')` flag to guarantee auto-fill and auto-submit run **exactly once** per page load/session.
+- **Domain Memory Integration & Settings Toggle (`options/options.html`, `options/options.js`, `background/background.js`)**:
+  - Seamlessly integrates with the Domain Memory Engine to intelligently switch between Login Mode (registered domains) and Sign-Up Mode (unregistered domains).
+  - Added new toggle in Profile Manager settings: **`Auto-Trigger Login & Sign-Up on Auth Pages`** (Default: `true`).
+
+---
+
 ## [1.7.0] - 2026-08-01
 
 ### 🚀 Auto-Navigation Engine (Job Application Auto-Initiation)

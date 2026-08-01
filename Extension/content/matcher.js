@@ -10,7 +10,7 @@ window.UniversalMatcher = (function() {
     // 1. Account Credentials & Logins
     { keys: ['confirm email', 're-enter email', 'verify email'], path: 'credentials.email' },
     { keys: ['this is how we\'ll communicate with you', 'email address', 'email', 'e-mail', 'user email', 'work email', 'personal email', 'gmail', 'login email', 'email id', 'username'], path: 'credentials.email' },
-    { keys: ['confirm password', 're-enter password', 'verify password', 'password confirmation'], path: 'credentials.password', isConfirmPassword: true },
+    { keys: ['confirm password', 're-enter password', 'verify password', 'verify new password', 'confirm new password', 'password confirmation'], path: 'credentials.password', isConfirmPassword: true },
     { keys: ['account password', 'create password', 'new password', 'portal password', 'user password', 'password'], path: 'credentials.password' },
 
     // 2. Personal Information

@@ -94,6 +94,7 @@ const DEFAULT_PROFILE = {
     autoSubmitOnAgreement: true,
     instantEmailAutoFill: true,
     autoNavigateEnabled: true,
+    autoAuthEnabled: true,
     highlightFilledFields: true
   },
   registeredDomains: []
