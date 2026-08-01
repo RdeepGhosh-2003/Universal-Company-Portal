@@ -68,17 +68,16 @@ Universal Company Portal/
 ### 2. ⚡ Complete Portal & Application Auto-Fill
 - When filling out candidate details on a job portal or career page:
   - Press **`Alt + F`** on your keyboard, OR
-  - Click the extension popup and hit **"Auto-Fill Portal Form"**, OR
-  - Click the floating **⚡ Auto-Fill** widget at the bottom-right of the page.
+  - Click the extension icon ⚡ and hit **"Auto-Fill Portal Form"**.
 - Automatically fills:
   - **Personal Info**: First Name, Last Name, Full Name, Email, Phone, Address, City, State, Country, Zip, LinkedIn, GitHub, Portfolio.
-  - **Work Experience**: Job Title, Company, Total Experience, Current CTC, Expected CTC, Target Role, Target Location, Notice Period.
+  - **Work Experience**: Job Title, Company, Total Experience, Salary/CTC, Location, Responsibilities across stored work entries.
   - **Education**: Degree, Major, University, Graduation Year, GPA.
   - **Screening Q&A**: Answers common questions like Notice Period, Relocation, Work Authorization, and Excel skills.
 
-### 3. ⚙️ Managing Profile, Passwords & Custom Screening Q&A
+### 3. ⚙️ Managing Profile, Passwords & Work Experience
 - Right-click the extension icon and select **"Manage Auto-Fill Profile & Passwords"**, OR click the **⚙️** icon in the popup.
-- Navigate through tabs to update your information.
+- **Multi-Work Experience**: Add and manage multiple current & past job experiences (`+ Add Work Experience` button).
 - **Add Custom Screening Rules**: Click `+ Add Rule` under the *Screening Q&A* tab to pair keywords (e.g. `python, pandas`) with your desired answer.
 - **Backup & Restore**: Use `📥 Export Profile JSON` and `📤 Import Profile JSON` to back up or restore your data.
 

@@ -2,6 +2,20 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.4.0] - 2026-08-01
+
+### 💼 Multi-Work Experience Manager & UI Streamlining
+- **Multi-Work Experience Support (`options/options.html` & `options/options.js`)**:
+  - Removed "Target Role Preferences" section from Profile Manager.
+  - Renamed tab to **`💼 Work Experience`**.
+  - Added dynamic multi-work experience builder (`+ Add Work Experience` button), allowing users to store multiple job entries (Company Name, Job Title, Experience Years, Salary/CTC, Location, and Responsibilities).
+  - Updated storage schema to maintain `workExperiences` array while preserving backward compatibility for `work.currentRole`.
+- **Floating Overlay Widget Removal**:
+  - Completely removed the on-page floating overlay button (`.autofill-floating-widget`) and `injectFloatingWidget()` code to keep web pages clean and unobtrusive.
+  - Form auto-fill remains accessible via keyboard shortcut **`Alt+F`**, extension toolbar popup icon ⚡, and right-click context menu.
+
+---
+
 ## [1.3.0] - 2026-07-25
 
 ### ⚡ Instant Email Auto-Fill & Agreement Auto-Submit Engine

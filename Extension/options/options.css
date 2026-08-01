@@ -244,6 +244,55 @@ body {
   padding: 4px;
 }
 
+/* Work Experience List */
+.work-experience-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.work-item {
+  background: var(--input-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+}
+
+.work-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+}
+
+.work-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.work-delete-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.work-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
 /* Settings & Backup */
 .setting-row {
   display: flex;

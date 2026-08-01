@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const toastBanner = document.getElementById('toast-banner');
   const btnSave = document.getElementById('btn-save');
   const btnAddQA = document.getElementById('btn-add-qa');
+  const btnAddWork = document.getElementById('btn-add-work');
   const screeningList = document.getElementById('screening-list');
+  const workExperienceList = document.getElementById('work-experience-list');
   const btnExport = document.getElementById('btn-export');
   const btnImportTrigger = document.getElementById('btn-import-trigger');
   const fileImport = document.getElementById('file-import');
@@ -16,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const TAB_TITLES = {
     'tab-credentials': 'Logins & Portal Credentials',
     'tab-personal': 'Personal Information',
-    'tab-work': 'Work Experience & Target Role',
+    'tab-work': 'Work Experience',
     'tab-education': 'Education History',
     'tab-screening': 'Custom Screening Q&A Bank',
     'tab-settings': 'Extension Settings & Backup'
@@ -66,16 +68,23 @@ document.addEventListener('DOMContentLoaded', () => {
     setVal('personal-github', p.personal?.github);
     setVal('personal-portfolio', p.personal?.portfolio);
 
-    // Work
-    setVal('work-current-title', p.work?.currentRole?.jobTitle);
-    setVal('work-current-company', p.work?.currentRole?.company);
-    setVal('work-current-exp', p.work?.currentRole?.yearsExperience);
-    setVal('work-current-salary', p.work?.currentRole?.currentSalary);
-
-    setVal('work-target-title', p.work?.targetRole?.jobTitle);
-    setVal('work-target-location', p.work?.targetRole?.targetLocation);
-    setVal('work-target-salary', p.work?.targetRole?.expectedSalary);
-    setVal('work-target-notice', p.work?.targetRole?.noticePeriod);
+    // Work Experience Array (with fallback to currentRole)
+    let workList = p.workExperiences;
+    if (!workList || !Array.isArray(workList) || workList.length === 0) {
+      if (p.work?.currentRole && p.work.currentRole.company) {
+        workList = [{
+          company: p.work.currentRole.company || '',
+          jobTitle: p.work.currentRole.jobTitle || '',
+          yearsExperience: p.work.currentRole.yearsExperience || '',
+          currentSalary: p.work.currentRole.currentSalary || '',
+          location: p.personal?.city || '',
+          description: ''
+        }];
+      } else {
+        workList = [];
+      }
+    }
+    renderWorkExperienceList(workList);
 
     // Education
     setVal('edu-degree', p.education?.degree);
@@ -86,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Settings
     setCheck('set-highlight', p.settings?.highlightFilledFields !== false);
-    setCheck('set-widget', p.settings?.showFloatingWidget !== false);
     setCheck('set-instant-email', p.settings?.instantEmailAutoFill !== false);
     setCheck('set-agree-submit', p.settings?.autoSubmitOnAgreement !== false);
     setCheck('set-terms', p.settings?.autoCheckTerms !== false);
@@ -97,7 +105,66 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScreeningList(p.screening || []);
   }
 
+  // Work Experience Dynamic UI
+  function renderWorkExperienceList(workArray) {
+    if (!workExperienceList) return;
+    workExperienceList.innerHTML = '';
+    if (workArray.length === 0) {
+      // Add one default empty work experience row
+      addWorkItemRow();
+    } else {
+      workArray.forEach((item, index) => {
+        addWorkItemRow(item.company, item.jobTitle, item.yearsExperience, item.currentSalary, item.location, item.description, index);
+      });
+    }
+  }
+
+  function addWorkItemRow(company = '', jobTitle = '', yearsExp = '', salary = '', location = '', description = '', index = Date.now()) {
+    if (!workExperienceList) return;
+    const card = document.createElement('div');
+    card.className = 'work-item';
+    card.innerHTML = `
+      <div class="work-item-header">
+        <span class="work-item-title">💼 ${escapeHtml(company || jobTitle || 'Work Experience Entry')}</span>
+        <button type="button" class="work-delete-btn" title="Remove work experience">🗑️ Remove</button>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Company Name</label>
+          <input type="text" class="work-company" value="${escapeHtml(company)}" placeholder="e.g. Acme Corp / Company Pvt Ltd">
+        </div>
+        <div class="form-group">
+          <label>Job Title / Designation</label>
+          <input type="text" class="work-title" value="${escapeHtml(jobTitle)}" placeholder="e.g. MIS Analyst / Software Engineer">
+        </div>
+        <div class="form-group">
+          <label>Years of Experience</label>
+          <input type="text" class="work-exp" value="${escapeHtml(yearsExp)}" placeholder="e.g. 2">
+        </div>
+        <div class="form-group">
+          <label>Salary / CTC</label>
+          <input type="text" class="work-salary" value="${escapeHtml(salary)}" placeholder="e.g. 500000">
+        </div>
+        <div class="form-group full-width-grid">
+          <label>Location</label>
+          <input type="text" class="work-location" value="${escapeHtml(location)}" placeholder="e.g. Bengaluru, India">
+        </div>
+        <div class="form-group full-width-grid">
+          <label>Job Description & Responsibilities</label>
+          <input type="text" class="work-desc" value="${escapeHtml(description)}" placeholder="e.g. Advanced Excel, SQL, Data analysis, VLOOKUP">
+        </div>
+      </div>
+    `;
+
+    card.querySelector('.work-delete-btn').addEventListener('click', () => {
+      card.remove();
+    });
+
+    workExperienceList.appendChild(card);
+  }
+
   function renderScreeningList(screeningArray) {
+    if (!screeningList) return;
     screeningList.innerHTML = '';
     screeningArray.forEach((item, index) => {
       addQARow(item.keywords, item.answer, index);
@@ -105,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function addQARow(keywords = '', answer = '', index = Date.now()) {
+    if (!screeningList) return;
     const row = document.createElement('div');
     row.className = 'qa-item';
     row.innerHTML = `
@@ -124,6 +192,28 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSave.addEventListener('click', (e) => {
     e.preventDefault();
 
+    // Collect Work Experiences
+    const newWorkExperiences = [];
+    document.querySelectorAll('.work-item').forEach(card => {
+      const company = card.querySelector('.work-company').value.trim();
+      const jobTitle = card.querySelector('.work-title').value.trim();
+      const yearsExp = card.querySelector('.work-exp').value.trim();
+      const salary = card.querySelector('.work-salary').value.trim();
+      const location = card.querySelector('.work-location').value.trim();
+      const description = card.querySelector('.work-desc').value.trim();
+
+      if (company || jobTitle) {
+        newWorkExperiences.push({
+          company,
+          jobTitle,
+          yearsExperience: yearsExp,
+          currentSalary: salary,
+          location,
+          description
+        });
+      }
+    });
+
     // Collect Screening Q&A items
     const newScreening = [];
     document.querySelectorAll('.qa-item').forEach(row => {
@@ -133,6 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
         newScreening.push({ keywords: kw, answer: ans });
       }
     });
+
+    const primaryWork = newWorkExperiences[0] || {};
 
     const updatedProfile = {
       credentials: {
@@ -155,19 +247,13 @@ document.addEventListener('DOMContentLoaded', () => {
         github: getVal('personal-github'),
         portfolio: getVal('personal-portfolio')
       },
+      workExperiences: newWorkExperiences,
       work: {
         currentRole: {
-          jobTitle: getVal('work-current-title'),
-          company: getVal('work-current-company'),
-          yearsExperience: getVal('work-current-exp'),
-          currentSalary: getVal('work-current-salary')
-        },
-        targetRole: {
-          jobTitle: getVal('work-target-title'),
-          targetLocation: getVal('work-target-location'),
-          expectedSalary: getVal('work-target-salary'),
-          noticePeriod: getVal('work-target-notice'),
-          workMode: "Hybrid"
+          jobTitle: primaryWork.jobTitle || '',
+          company: primaryWork.company || '',
+          yearsExperience: primaryWork.yearsExperience || '',
+          currentSalary: primaryWork.currentSalary || ''
         }
       },
       education: {
@@ -180,7 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
       screening: newScreening,
       settings: {
         highlightFilledFields: getCheck('set-highlight'),
-        showFloatingWidget: getCheck('set-widget'),
         instantEmailAutoFill: getCheck('set-instant-email'),
         autoSubmitOnAgreement: getCheck('set-agree-submit'),
         autoCheckTerms: getCheck('set-terms'),
@@ -202,10 +287,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Add Work Experience Button
+  if (btnAddWork) {
+    btnAddWork.addEventListener('click', () => {
+      addWorkItemRow();
+    });
+  }
+
   // Add Q&A Rule Button
-  btnAddQA.addEventListener('click', () => {
-    addQARow('', '');
-  });
+  if (btnAddQA) {
+    btnAddQA.addEventListener('click', () => {
+      addQARow('', '');
+    });
+  }
 
   // Export JSON
   btnExport.addEventListener('click', () => {

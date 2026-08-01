@@ -24,19 +24,22 @@ const DEFAULT_PROFILE = {
     github: "https://github.com/rajdeepghosh",
     portfolio: "https://rajdeepghosh.dev"
   },
+  workExperiences: [
+    {
+      company: "Durga Bearings Co. Pvt Ltd",
+      jobTitle: "MIS Analyst",
+      yearsExperience: "1",
+      currentSalary: "450000",
+      location: "Bengaluru",
+      description: "Advanced Excel, VLOOKUP, Pivot Tables, MIS Reporting"
+    }
+  ],
   work: {
     currentRole: {
       jobTitle: "MIS Analyst",
       company: "Durga Bearings Co. Pvt Ltd",
       yearsExperience: "1",
       currentSalary: "450000"
-    },
-    targetRole: {
-      jobTitle: "MIS Analyst",
-      targetLocation: "Bengaluru",
-      expectedSalary: "600000",
-      noticePeriod: "Immediate",
-      workMode: "Hybrid"
     }
   },
   education: {
@@ -75,8 +78,7 @@ const DEFAULT_PROFILE = {
     autoSubmitSignUp: true,
     autoSubmitOnAgreement: true,
     instantEmailAutoFill: true,
-    highlightFilledFields: true,
-    showFloatingWidget: true
+    highlightFilledFields: true
   }
 };
 

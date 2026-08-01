@@ -13,11 +13,6 @@
       if (response && response.profile) {
         currentProfile = response.profile;
 
-        // Add Floating Widget if enabled
-        if (currentProfile.settings && currentProfile.settings.showFloatingWidget !== false) {
-          injectFloatingWidget();
-        }
-
         // Instant Email Auto-Fill on Load
         setTimeout(() => performInstantEmailAutoFill(), 300);
 
@@ -188,30 +183,6 @@
     } else {
       showToast(`No new fields matched for auto-fill on this page.`, "info");
     }
-  }
-
-  // Inject Floating Widget Button
-  function injectFloatingWidget() {
-    if (document.getElementById('autofill-floating-widget')) return;
-
-    const widget = document.createElement('div');
-    widget.id = 'autofill-floating-widget';
-    widget.className = 'autofill-floating-widget';
-    widget.title = 'Universal Auto-Fill Portal Form (Alt+F)';
-    widget.innerHTML = `
-      <div class="autofill-widget-inner">
-        <span class="autofill-widget-icon">⚡</span>
-        <span class="autofill-widget-label">Auto-Fill</span>
-      </div>
-    `;
-
-    widget.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      performAutoFill("ALL");
-    });
-
-    document.body.appendChild(widget);
   }
 
   // Learn-as-You-Go Scanner Engine
