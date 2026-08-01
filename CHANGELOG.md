@@ -2,6 +2,25 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.6.0] - 2026-08-01
+
+### 📅 Work Experience & Education Date Inputs Refactoring
+- **Structured Month & Year Inputs (`options/options.html` & `options/options.js`)**:
+  - Replaced generic static "Years of Experience" and "Graduation Year" inputs with structured date grids.
+  - **From Date**: Month dropdown (`January` - `December`) and Year input (`YYYY`).
+  - **To Date**: Month dropdown (`January` - `December`) and Year input (`YYYY`).
+  - **Current Checkboxes**: `"I currently work here"` (Work Experience) and `"I currently study here"` (Education).
+- **Dynamic UI Interactions (`options/options.js` & `options/options.css`)**:
+  - Checking `"I currently work here"` or `"I currently study here"` automatically dims and disables the "To Date" Month and Year inputs.
+- **State Management & Backward Compatibility (`options/options.js` & `background/background.js`)**:
+  - Profile objects now store `startMonth`, `startYear`, `endMonth`, `endYear`, and `isCurrent` (boolean).
+  - Automatically converts legacy `yearsExperience` or `graduationYear` values to the new format seamlessly.
+- **Enhanced Matching Engine (`content/matcher.js`)**:
+  - Detects portal date fields: `"Start Month"`, `"Start Year"`, `"End Month"`, `"End Year"`, `"From Date"`, `"To Date"`, `"Graduation Month"`, `"Graduation Year"`.
+  - **Dynamic Fallback Calculation**: If a portal asks for total "Years of Experience", the matcher dynamically calculates total years based on From/To dates across work entries.
+
+---
+
 ## [1.5.0] - 2026-08-01
 
 ### 🌐 Domain Memory Engine & Master Action Routing (`Alt+S`)

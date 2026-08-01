@@ -175,17 +175,69 @@
                 <label for="edu-major">Major / Specialization</label>
                 <input type="text" id="edu-major" placeholder="Computer Science / Information Technology">
               </div>
-              <div class="form-group">
+              <div class="form-group full-width-grid">
                 <label for="edu-university">University / College</label>
                 <input type="text" id="edu-university" placeholder="ABC University">
               </div>
               <div class="form-group">
-                <label for="edu-year">Graduation Year</label>
-                <input type="text" id="edu-year" placeholder="2022">
-              </div>
-              <div class="form-group">
                 <label for="edu-gpa">GPA / Percentage</label>
                 <input type="text" id="edu-gpa" placeholder="8.5 / 85%">
+              </div>
+            </div>
+
+            <!-- Date Grid for Education -->
+            <div class="date-section margin-top">
+              <h4 class="sub-header">Study Duration & Graduation Date</h4>
+              <div class="grid-2 margin-top-xs">
+                <div class="form-group">
+                  <label>From Date (Start Month & Year)</label>
+                  <div class="month-year-flex">
+                    <select id="edu-start-month" class="month-select">
+                      <option value="">Month</option>
+                      <option value="January">January</option>
+                      <option value="February">February</option>
+                      <option value="March">March</option>
+                      <option value="April">April</option>
+                      <option value="May">May</option>
+                      <option value="June">June</option>
+                      <option value="July">July</option>
+                      <option value="August">August</option>
+                      <option value="September">September</option>
+                      <option value="October">October</option>
+                      <option value="November">November</option>
+                      <option value="December">December</option>
+                    </select>
+                    <input type="number" id="edu-start-year" placeholder="YYYY" min="1970" max="2035">
+                  </div>
+                </div>
+
+                <div class="form-group" id="edu-to-group">
+                  <label>To Date / Graduation (End Month & Year)</label>
+                  <div class="month-year-flex">
+                    <select id="edu-end-month" class="month-select">
+                      <option value="">Month</option>
+                      <option value="January">January</option>
+                      <option value="February">February</option>
+                      <option value="March">March</option>
+                      <option value="April">April</option>
+                      <option value="May">May</option>
+                      <option value="June">June</option>
+                      <option value="July">July</option>
+                      <option value="August">August</option>
+                      <option value="September">September</option>
+                      <option value="October">October</option>
+                      <option value="November">November</option>
+                      <option value="December">December</option>
+                    </select>
+                    <input type="number" id="edu-end-year" placeholder="YYYY" min="1970" max="2035">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group margin-top-xs">
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="edu-is-current"> I currently study here
+                </label>
               </div>
             </div>
           </div>

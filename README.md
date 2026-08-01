@@ -75,8 +75,9 @@ Universal Company Portal/
   - **Education**: Degree, Major, University, Graduation Year, GPA.
   - **Screening Q&A**: Answers common questions like Notice Period, Relocation, Work Authorization, and Excel skills.
 
-### 3. ⚙️ Managing Profile, Passwords & Work Experience
+### 3. ⚙️ Managing Profile, Passwords, Dates & Work Experience
 - Right-click the extension icon and select **"Manage Auto-Fill Profile & Passwords"**, OR click the **⚙️** icon in the popup.
+- **Structured Date Grids**: Configure From Date (Month/Year) & To Date (Month/Year) or toggle `"I currently work here"` / `"I currently study here"` checkboxes for Work & Education entries.
 - **Multi-Work Experience**: Add and manage multiple current & past job experiences (`+ Add Work Experience` button).
 - **Add Custom Screening Rules**: Click `+ Add Rule` under the *Screening Q&A* tab to pair keywords (e.g. `python, pandas`) with your desired answer.
 - **Backup & Restore**: Use `📥 Export Profile JSON` and `📤 Import Profile JSON` to back up or restore your data.

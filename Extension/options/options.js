@@ -124,8 +124,36 @@ document.addEventListener('DOMContentLoaded', () => {
     setVal('edu-degree', p.education?.degree);
     setVal('edu-major', p.education?.major);
     setVal('edu-university', p.education?.university);
-    setVal('edu-year', p.education?.graduationYear);
     setVal('edu-gpa', p.education?.gpa);
+    setVal('edu-start-month', p.education?.startMonth);
+    setVal('edu-start-year', p.education?.startYear);
+    setVal('edu-end-month', p.education?.endMonth);
+    setVal('edu-end-year', p.education?.endYear || p.education?.graduationYear);
+    setCheck('edu-is-current', p.education?.isCurrent);
+
+    const eduIsCurrent = document.getElementById('edu-is-current');
+    const eduToGroup = document.getElementById('edu-to-group');
+    const eduEndMonth = document.getElementById('edu-end-month');
+    const eduEndYear = document.getElementById('edu-end-year');
+
+    if (eduIsCurrent) {
+      if (eduIsCurrent.checked && eduToGroup) {
+        eduToGroup.classList.add('disabled-date-group');
+        if (eduEndMonth) eduEndMonth.disabled = true;
+        if (eduEndYear) eduEndYear.disabled = true;
+      }
+      eduIsCurrent.addEventListener('change', () => {
+        if (eduIsCurrent.checked) {
+          eduToGroup?.classList.add('disabled-date-group');
+          if (eduEndMonth) eduEndMonth.disabled = true;
+          if (eduEndYear) eduEndYear.disabled = true;
+        } else {
+          eduToGroup?.classList.remove('disabled-date-group');
+          if (eduEndMonth) eduEndMonth.disabled = false;
+          if (eduEndYear) eduEndYear.disabled = false;
+        }
+      });
+    }
 
     // Settings
     setCheck('set-highlight', p.settings?.highlightFilledFields !== false);
@@ -148,13 +176,58 @@ document.addEventListener('DOMContentLoaded', () => {
       addWorkItemRow();
     } else {
       workArray.forEach((item, index) => {
-        addWorkItemRow(item.company, item.jobTitle, item.yearsExperience, item.currentSalary, item.location, item.description, index);
+        addWorkItemRow(item, index);
       });
     }
   }
 
-  function addWorkItemRow(company = '', jobTitle = '', yearsExp = '', salary = '', location = '', description = '', index = Date.now()) {
+  function getMonthOptionsHTML(selectedMonth = '') {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const selLower = String(selectedMonth || '').toLowerCase().trim();
+    return months.map(m => {
+      const isSel = selLower === m.toLowerCase() || selLower === m.substring(0, 3).toLowerCase();
+      return `<option value="${m}" ${isSel ? 'selected' : ''}>${m}</option>`;
+    }).join('');
+  }
+
+  function calculateYearsDiff(startMonth, startYear, endMonth, endYear, isCurrent) {
+    if (!startYear) return "0";
+    const sYr = parseInt(startYear, 10);
+    if (isNaN(sYr)) return "0";
+
+    const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    let sMo = months.indexOf(String(startMonth || '').toLowerCase());
+    if (sMo === -1) sMo = parseInt(startMonth, 10) - 1 || 0;
+
+    let eYr, eMo;
+    if (isCurrent) {
+      const now = new Date();
+      eYr = now.getFullYear();
+      eMo = now.getMonth();
+    } else {
+      eYr = parseInt(endYear, 10) || new Date().getFullYear();
+      eMo = months.indexOf(String(endMonth || '').toLowerCase());
+      if (eMo === -1) eMo = parseInt(endMonth, 10) - 1 || 11;
+    }
+
+    const monthsDiff = Math.max(0, (eYr - sYr) * 12 + (eMo - sMo));
+    const totalYears = monthsDiff / 12;
+    return totalYears % 1 === 0 ? totalYears.toString() : totalYears.toFixed(1);
+  }
+
+  function addWorkItemRow(item = {}, index = Date.now()) {
     if (!workExperienceList) return;
+    const company = item.company || '';
+    const jobTitle = item.jobTitle || '';
+    const startMonth = item.startMonth || '';
+    const startYear = item.startYear || '';
+    const endMonth = item.endMonth || '';
+    const endYear = item.endYear || '';
+    const isCurrent = !!item.isCurrent;
+    const salary = item.currentSalary || item.salary || '';
+    const location = item.location || '';
+    const description = item.description || '';
+
     const card = document.createElement('div');
     card.className = 'work-item';
     card.innerHTML = `
@@ -171,15 +244,46 @@ document.addEventListener('DOMContentLoaded', () => {
           <label>Job Title / Designation</label>
           <input type="text" class="work-title" value="${escapeHtml(jobTitle)}" placeholder="e.g. MIS Analyst / Software Engineer">
         </div>
-        <div class="form-group">
-          <label>Years of Experience</label>
-          <input type="text" class="work-exp" value="${escapeHtml(yearsExp)}" placeholder="e.g. 2">
+      </div>
+
+      <div class="date-section margin-top-xs">
+        <div class="grid-2">
+          <div class="form-group">
+            <label>From Date (Start Month & Year)</label>
+            <div class="month-year-flex">
+              <select class="work-start-month">
+                <option value="">Month</option>
+                ${getMonthOptionsHTML(startMonth)}
+              </select>
+              <input type="number" class="work-start-year" value="${escapeHtml(startYear)}" placeholder="YYYY" min="1970" max="2035">
+            </div>
+          </div>
+
+          <div class="form-group work-to-group ${isCurrent ? 'disabled-date-group' : ''}">
+            <label>To Date (End Month & Year)</label>
+            <div class="month-year-flex">
+              <select class="work-end-month" ${isCurrent ? 'disabled' : ''}>
+                <option value="">Month</option>
+                ${getMonthOptionsHTML(endMonth)}
+              </select>
+              <input type="number" class="work-end-year" value="${escapeHtml(endYear)}" placeholder="YYYY" min="1970" max="2035" ${isCurrent ? 'disabled' : ''}>
+            </div>
+          </div>
         </div>
+
+        <div class="form-group margin-top-xs">
+          <label class="checkbox-inline">
+            <input type="checkbox" class="work-is-current" ${isCurrent ? 'checked' : ''}> I currently work here
+          </label>
+        </div>
+      </div>
+
+      <div class="grid-2 margin-top-xs">
         <div class="form-group">
           <label>Salary / CTC</label>
           <input type="text" class="work-salary" value="${escapeHtml(salary)}" placeholder="e.g. 500000">
         </div>
-        <div class="form-group full-width-grid">
+        <div class="form-group">
           <label>Location</label>
           <input type="text" class="work-location" value="${escapeHtml(location)}" placeholder="e.g. Bengaluru, India">
         </div>
@@ -189,6 +293,24 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     `;
+
+    // Checkbox listener to disable To-Date group
+    const cb = card.querySelector('.work-is-current');
+    const toGroup = card.querySelector('.work-to-group');
+    const endMonthSel = card.querySelector('.work-end-month');
+    const endYearInp = card.querySelector('.work-end-year');
+
+    cb.addEventListener('change', () => {
+      if (cb.checked) {
+        toGroup.classList.add('disabled-date-group');
+        endMonthSel.disabled = true;
+        endYearInp.disabled = true;
+      } else {
+        toGroup.classList.remove('disabled-date-group');
+        endMonthSel.disabled = false;
+        endYearInp.disabled = false;
+      }
+    });
 
     card.querySelector('.work-delete-btn').addEventListener('click', () => {
       card.remove();
@@ -231,15 +353,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.work-item').forEach(card => {
       const company = card.querySelector('.work-company').value.trim();
       const jobTitle = card.querySelector('.work-title').value.trim();
-      const yearsExp = card.querySelector('.work-exp').value.trim();
+      const startMonth = card.querySelector('.work-start-month').value.trim();
+      const startYear = card.querySelector('.work-start-year').value.trim();
+      const endMonth = card.querySelector('.work-end-month').value.trim();
+      const endYear = card.querySelector('.work-end-year').value.trim();
+      const isCurrent = card.querySelector('.work-is-current').checked;
       const salary = card.querySelector('.work-salary').value.trim();
       const location = card.querySelector('.work-location').value.trim();
       const description = card.querySelector('.work-desc').value.trim();
+
+      const yearsExp = calculateYearsDiff(startMonth, startYear, endMonth, endYear, isCurrent);
 
       if (company || jobTitle) {
         newWorkExperiences.push({
           company,
           jobTitle,
+          startMonth,
+          startYear,
+          endMonth,
+          endYear,
+          isCurrent,
           yearsExperience: yearsExp,
           currentSalary: salary,
           location,
@@ -286,6 +419,11 @@ document.addEventListener('DOMContentLoaded', () => {
         currentRole: {
           jobTitle: primaryWork.jobTitle || '',
           company: primaryWork.company || '',
+          startMonth: primaryWork.startMonth || '',
+          startYear: primaryWork.startYear || '',
+          endMonth: primaryWork.endMonth || '',
+          endYear: primaryWork.endYear || '',
+          isCurrent: !!primaryWork.isCurrent,
           yearsExperience: primaryWork.yearsExperience || '',
           currentSalary: primaryWork.currentSalary || ''
         }
@@ -294,8 +432,13 @@ document.addEventListener('DOMContentLoaded', () => {
         degree: getVal('edu-degree'),
         major: getVal('edu-major'),
         university: getVal('edu-university'),
-        graduationYear: getVal('edu-year'),
-        gpa: getVal('edu-gpa')
+        gpa: getVal('edu-gpa'),
+        startMonth: getVal('edu-start-month'),
+        startYear: getVal('edu-start-year'),
+        endMonth: getVal('edu-end-month'),
+        endYear: getVal('edu-end-year'),
+        graduationYear: getVal('edu-end-year'),
+        isCurrent: getCheck('edu-is-current')
       },
       screening: newScreening,
       settings: {

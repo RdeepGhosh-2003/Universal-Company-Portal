@@ -28,7 +28,12 @@ const DEFAULT_PROFILE = {
     {
       company: "Durga Bearings Co. Pvt Ltd",
       jobTitle: "MIS Analyst",
-      yearsExperience: "1",
+      startMonth: "June",
+      startYear: "2023",
+      endMonth: "",
+      endYear: "",
+      isCurrent: true,
+      yearsExperience: "1.2",
       currentSalary: "450000",
       location: "Bengaluru",
       description: "Advanced Excel, VLOOKUP, Pivot Tables, MIS Reporting"
@@ -38,7 +43,12 @@ const DEFAULT_PROFILE = {
     currentRole: {
       jobTitle: "MIS Analyst",
       company: "Durga Bearings Co. Pvt Ltd",
-      yearsExperience: "1",
+      startMonth: "June",
+      startYear: "2023",
+      endMonth: "",
+      endYear: "",
+      isCurrent: true,
+      yearsExperience: "1.2",
       currentSalary: "450000"
     }
   },
@@ -46,7 +56,12 @@ const DEFAULT_PROFILE = {
     degree: "Bachelor of Technology",
     major: "Computer Science / IT",
     university: "ABC University",
+    startMonth: "August",
+    startYear: "2018",
+    endMonth: "May",
+    endYear: "2022",
     graduationYear: "2022",
+    isCurrent: false,
     gpa: "8.5"
   },
   screening: [

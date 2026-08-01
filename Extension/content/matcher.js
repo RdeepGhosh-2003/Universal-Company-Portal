@@ -27,31 +27,81 @@ window.UniversalMatcher = (function() {
     { keys: ['github', 'github url', 'github profile'], path: 'personal.github' },
     { keys: ['portfolio', 'website', 'personal site', 'blog', 'url'], path: 'personal.portfolio' },
 
-    // 3. Work Experience & Target Role
+    // 3. Work Experience & Date Fields
     { keys: ['current job title', 'current role', 'present position', 'recent job title', 'designation', 'current designation', 'title', 'position'], path: 'work.currentRole.jobTitle' },
     { keys: ['current company', 'present company', 'company name', 'current employer', 'employer', 'organization'], path: 'work.currentRole.company' },
     { keys: ['total experience', 'years of experience', 'years experience', 'total exp', 'overall experience'], path: 'work.currentRole.yearsExperience' },
     { keys: ['current ctc', 'current salary', 'present salary', 'current compensation'], path: 'work.currentRole.currentSalary' },
+    { keys: ['job start month', 'work start month', 'from month', 'start month', 'joining month'], path: 'work.currentRole.startMonth' },
+    { keys: ['job start year', 'work start year', 'from year', 'start year', 'joining year'], path: 'work.currentRole.startYear' },
+    { keys: ['job end month', 'work end month', 'to month', 'end month', 'leaving month'], path: 'work.currentRole.endMonth' },
+    { keys: ['job end year', 'work end year', 'to year', 'end year', 'leaving year'], path: 'work.currentRole.endYear' },
+    { keys: ['currently work here', 'presently working', 'current job'], path: 'work.currentRole.isCurrent' },
 
-    { keys: ['target job title', 'desired role', 'target role', 'role applying for', 'applied position'], path: 'work.targetRole.jobTitle' },
-    { keys: ['expected ctc', 'expected salary', 'desired salary', 'expected compensation'], path: 'work.targetRole.expectedSalary' },
-    { keys: ['notice period', 'notice', 'how soon can you start', 'availability', 'joining time'], path: 'work.targetRole.noticePeriod' },
-    { keys: ['preferred location', 'target location', 'desired location', 'work location'], path: 'work.targetRole.targetLocation' },
-    { keys: ['work mode', 'preferred mode', 'remote preference'], path: 'work.targetRole.workMode' },
-
-    // 4. Education History
+    // 4. Education History & Dates
     { keys: ['highest degree', 'degree', 'qualification', 'education level', 'degree earned'], path: 'education.degree' },
     { keys: ['field of study', 'major', 'stream', 'specialization', 'branch', 'course'], path: 'education.major' },
     { keys: ['university', 'college', 'school', 'institution', 'institute'], path: 'education.university' },
-    { keys: ['graduation year', 'year of passing', 'passing year', 'completion year', 'grad year'], path: 'education.graduationYear' },
+    { keys: ['graduation month', 'education end month', 'passing month', 'degree end month'], path: 'education.endMonth' },
+    { keys: ['graduation year', 'year of passing', 'passing year', 'completion year', 'grad year', 'education end year', 'degree end year'], path: 'education.endYear' },
+    { keys: ['education start month', 'college start month', 'degree start month'], path: 'education.startMonth' },
+    { keys: ['education start year', 'college start year', 'degree start year'], path: 'education.startYear' },
+    { keys: ['currently study here', 'currently studying', 'present education'], path: 'education.isCurrent' },
     { keys: ['gpa', 'cgpa', 'percentage', 'marks', 'grade'], path: 'education.gpa' }
   ];
+
+  /**
+   * Helper to dynamically calculate total years of experience across work history
+   */
+  function calculateTotalExperienceYears(profile) {
+    const workList = profile.workExperiences || (profile.work?.currentRole ? [profile.work.currentRole] : []);
+    if (!workList || !workList.length) return "0";
+
+    let totalMonths = 0;
+    const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+
+    workList.forEach(w => {
+      if (w.yearsExperience && !w.startYear) {
+        totalMonths += (parseFloat(w.yearsExperience) || 0) * 12;
+        return;
+      }
+
+      if (!w.startYear) return;
+      const sYr = parseInt(w.startYear, 10);
+      if (isNaN(sYr)) return;
+
+      let sMo = months.indexOf(String(w.startMonth || '').toLowerCase());
+      if (sMo === -1) sMo = parseInt(w.startMonth, 10) - 1 || 0;
+
+      let eYr, eMo;
+      if (w.isCurrent) {
+        const now = new Date();
+        eYr = now.getFullYear();
+        eMo = now.getMonth();
+      } else {
+        eYr = parseInt(w.endYear, 10) || new Date().getFullYear();
+        eMo = months.indexOf(String(w.endMonth || '').toLowerCase());
+        if (eMo === -1) eMo = parseInt(w.endMonth, 10) - 1 || 11;
+      }
+
+      const monthsDiff = Math.max(0, (eYr - sYr) * 12 + (eMo - sMo));
+      totalMonths += monthsDiff;
+    });
+
+    const totalYears = totalMonths / 12;
+    return totalYears % 1 === 0 ? totalYears.toString() : totalYears.toFixed(1);
+  }
 
   /**
    * Helper to safely extract nested value from object path (e.g. 'work.currentRole.jobTitle')
    */
   function getNestedValue(obj, path) {
     if (!obj || !path) return null;
+    if (path === 'work.currentRole.yearsExperience') {
+      const direct = obj.work?.currentRole?.yearsExperience;
+      if (direct !== undefined && direct !== null && direct !== "" && direct !== "0") return direct;
+      return calculateTotalExperienceYears(obj);
+    }
     const keys = path.split('.');
     let current = obj;
     for (const key of keys) {

@@ -179,7 +179,8 @@ body {
   color: var(--text-sub);
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   background-color: var(--input-bg);
   border: 1px solid var(--card-border);
   border-radius: 8px;
@@ -190,8 +191,45 @@ body {
   transition: border-color 0.2s;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   border-color: var(--accent-primary);
+}
+
+.month-year-flex {
+  display: flex;
+  gap: 10px;
+}
+
+.month-year-flex select {
+  flex: 1.2;
+}
+
+.month-year-flex input {
+  flex: 1;
+}
+
+.checkbox-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-main);
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+}
+
+.checkbox-inline input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.disabled-date-group {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
 }
 
 /* Screening Rules */
