@@ -165,10 +165,11 @@ window.UniversalMatcher = (function() {
       });
     }
 
-    // 4. Attributes: autocomplete, aria-label, placeholder, name, id, data-testid, title
+    // 4. Attributes: autocomplete, aria-label, placeholder, name, id, data-testid, data-automation-id, title
     if (el.getAttribute('autocomplete')) labelTexts.push(el.getAttribute('autocomplete'));
     if (el.getAttribute('aria-label')) labelTexts.push(el.getAttribute('aria-label'));
     if (el.getAttribute('data-testid')) labelTexts.push(el.getAttribute('data-testid'));
+    if (el.getAttribute('data-automation-id')) labelTexts.push(el.getAttribute('data-automation-id'));
     if (el.placeholder) labelTexts.push(el.placeholder);
     if (el.name) labelTexts.push(el.name);
     if (el.id) labelTexts.push(el.id);
@@ -265,12 +266,13 @@ window.UniversalMatcher = (function() {
     const labelText = getElementLabelText(el);
     const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
     const title = (el.getAttribute('title') || '').toLowerCase();
+    const automationId = (el.getAttribute('data-automation-id') || '').toLowerCase();
     
     // Parent or wrapper text (common in Workday / SPAs)
     const parentText = (el.parentElement ? el.parentElement.textContent : '').toLowerCase();
     const grandParentText = (el.parentElement && el.parentElement.parentElement ? el.parentElement.parentElement.textContent : '').toLowerCase();
 
-    const combinedText = `${labelText} ${ariaLabel} ${title} ${parentText} ${grandParentText}`.toLowerCase();
+    const combinedText = `${labelText} ${ariaLabel} ${title} ${automationId} ${parentText} ${grandParentText}`.toLowerCase();
 
     return CONSENT_KEYWORDS.some(kw => combinedText.includes(kw));
   }

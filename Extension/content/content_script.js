@@ -587,9 +587,10 @@
     }
   }
 
+  let lastHandledFormId = null;
+
   function checkAndTriggerAutoAuth() {
     if (currentProfile?.settings?.autoAuthEnabled === false) return;
-    if (sessionStorage.getItem('autoAuthTriggered') === 'true') return;
 
     const passwordInputs = Array.from(document.querySelectorAll('input[type="password"]'));
     const isPasswordVisible = passwordInputs.some(el => isElementVisible(el));
@@ -603,9 +604,16 @@
       pageText.includes('verify new password') ||
       pageText.includes('verify password');
 
+    // Create a unique form key based on current URL path + visible password input count
+    const formKey = `${window.location.pathname}_${passwordInputs.length}_${isPasswordVisible ? 'pw' : 'nopw'}`;
+
     if (hasAuthForm) {
-      // Mark session flag immediately to ensure auto-auth runs exactly ONCE per page load
-      sessionStorage.setItem('autoAuthTriggered', 'true');
+      if (sessionStorage.getItem('autoAuthFormKey') === formKey || lastHandledFormId === formKey) {
+        return;
+      }
+
+      sessionStorage.setItem('autoAuthFormKey', formKey);
+      lastHandledFormId = formKey;
 
       // Consent Auto-Check Engine (Terms & Conditions / Privacy Policy Checkboxes)
       executeConsentAutoCheck();

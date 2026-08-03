@@ -2,6 +2,17 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.12.0] - 2026-08-03
+
+### 🔑 Workday Create Account Auto-Auth & Attribute Engine
+- **Dynamic Form Key Tracking (`content/content_script.js`)**:
+  - Replaced global `sessionStorage` boolean lock with dynamic `formKey` (`pathname + pw_count + visibility`) tracking.
+  - Ensures auto-auth automatically fires when Workday transitions from the job description page to the `Create Account` / `Sign In` view.
+- **Workday `data-automation-id` Support (`content/matcher.js`)**:
+  - Enhanced `getElementLabelText` and `isConsentCheckbox` to extract and evaluate Workday's native `data-automation-id` attributes (`data-automation-id="email"`, `data-automation-id="password"`, `data-automation-id="confirmPassword"`, `data-automation-id="createAccountCheckbox"`).
+
+---
+
 ## [1.11.0] - 2026-08-03
 
 ### 🎯 Advanced Apply Button Hunter & Extension Health
