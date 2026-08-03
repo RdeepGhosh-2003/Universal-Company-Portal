@@ -47,7 +47,10 @@ window.UniversalMatcher = (function() {
     { keys: ['education start month', 'college start month', 'degree start month'], path: 'education.startMonth' },
     { keys: ['education start year', 'college start year', 'degree start year'], path: 'education.startYear' },
     { keys: ['currently study here', 'currently studying', 'present education'], path: 'education.isCurrent' },
-    { keys: ['gpa', 'cgpa', 'percentage', 'marks', 'grade'], path: 'education.gpa' }
+    { keys: ['gpa', 'cgpa', 'percentage', 'marks', 'grade'], path: 'education.gpa' },
+
+    // 5. Consent & Terms Checkboxes
+    { keys: ['consent', 'terms', 'agree', 'processing of my personal data', 'acknowledge', 'terms of service', 'privacy policy', 'privacy', 'accept', 'condition', 'legal statement'], path: 'settings.autoCheckTerms', isConsentCheckbox: true }
   ];
 
   /**
@@ -248,9 +251,34 @@ window.UniversalMatcher = (function() {
     return null;
   }
 
+  const CONSENT_KEYWORDS = [
+    'consent', 'terms', 'agree', 'processing of my personal data', 'acknowledge', 
+    'terms of service', 'privacy policy', 'privacy', 'accept', 'condition', 
+    'legal statement', 'data processing', 'terms & conditions', 'policy'
+  ];
+
+  /**
+   * Helper to determine if a checkbox or role="checkbox" element is for consent/terms
+   */
+  function isConsentCheckbox(el) {
+    if (!el) return false;
+    const labelText = getElementLabelText(el);
+    const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
+    const title = (el.getAttribute('title') || '').toLowerCase();
+    
+    // Parent or wrapper text (common in Workday / SPAs)
+    const parentText = (el.parentElement ? el.parentElement.textContent : '').toLowerCase();
+    const grandParentText = (el.parentElement && el.parentElement.parentElement ? el.parentElement.parentElement.textContent : '').toLowerCase();
+
+    const combinedText = `${labelText} ${ariaLabel} ${title} ${parentText} ${grandParentText}`.toLowerCase();
+
+    return CONSENT_KEYWORDS.some(kw => combinedText.includes(kw));
+  }
+
   return {
     matchField,
     getElementLabelText,
-    isSearchInput
+    isSearchInput,
+    isConsentCheckbox
   };
 })();

@@ -2,6 +2,22 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.10.0] - 2026-08-03
+
+### 📝 Consent Auto-Check Engine (Terms & Privacy Auto-Acceptance)
+- **Semantic Checkbox Matching (`content/matcher.js`)**:
+  - Added new Consent & Terms matching category to detect terms, conditions, privacy policy, and data processing checkboxes.
+  - Included keywords: `"consent"`, `"terms"`, `"agree"`, `"processing of my personal data"`, `"acknowledge"`, `"terms of service"`, `"privacy policy"`, `"accept"`, `"condition"`, `"legal statement"`.
+- **Workday & SPA Custom Checkbox Support (`content/content_script.js` & `content/matcher.js`)**:
+  - Scans native `<input type="checkbox">` elements and custom ARIA `role="checkbox"` elements.
+  - Programmatically sets `.checked = true` / `aria-checked = true`, dispatches synthetic `change` and `input` events.
+  - Simulates direct click events on associated `<label>` and wrapper `div` elements to handle styled custom checkboxes in Workday and modern SPAs.
+- **Auto-Auth & Master Action Sequence Injection (`content/content_script.js`)**:
+  - Injected `executeConsentAutoCheck()` immediately before auto-submitting in `executeSignUpFlow`, `executeLoginFlow`, and `checkAndTriggerAutoAuth`.
+  - Operates seamlessly within the `sessionStorage` loop protection framework.
+
+---
+
 ## [1.9.1] - 2026-08-01
 
 ### 🛠️ Hotfix: Manifest Loading Error & Shortcut Cleanup

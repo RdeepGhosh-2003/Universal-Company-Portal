@@ -111,6 +111,11 @@ Universal Company Portal/
 - **Loop Protection**: Uses a `sessionStorage` flag to guarantee execution runs **exactly once** per page load.
 - **Settings Toggle**: Enable/disable under Profile Manager -> Settings -> **`Auto-Trigger Login & Sign-Up on Auth Pages`**.
 
+### 9. 📝 Consent Auto-Check Engine (Terms & Privacy Auto-Acceptance)
+- **Semantic Checkbox Matching**: Automatically detects checkboxes for consent, terms of service, privacy policy, and personal data processing.
+- **Workday & SPA Custom Checkbox Support**: Handles native `<input type="checkbox">` and custom `role="checkbox"` elements with label/wrapper click simulation.
+- **Seamless Auto-Auth Pipeline**: Executes immediately prior to form submission during account registration and login sequences.
+
 ---
 
 ## ⚡ Extension Action Buttons Summary

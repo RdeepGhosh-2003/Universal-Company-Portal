@@ -272,6 +272,7 @@
 
   function executeLoginFlow(hostname) {
     executeFill("CREDENTIALS");
+    executeConsentAutoCheck();
     showToast(`🔑 Recognized Portal (${hostname})! Auto-logging in...`, "success");
 
     setTimeout(() => {
@@ -297,27 +298,8 @@
       }
     });
 
-    // 2. Auto-Check Terms & Conditions / Privacy Policy Checkboxes
-    if (currentProfile.settings && currentProfile.settings.autoCheckTerms !== false) {
-      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-      checkboxes.forEach(cb => {
-        const labelText = window.UniversalMatcher.getElementLabelText(cb);
-        if (
-          labelText.includes('terms') || 
-          labelText.includes('privacy') || 
-          labelText.includes('agree') || 
-          labelText.includes('accept') || 
-          labelText.includes('condition') ||
-          labelText.includes('policy')
-        ) {
-          cb.checked = true;
-          cb.dispatchEvent(new Event('change', { bubbles: true }));
-          cb.dispatchEvent(new Event('click', { bubbles: true }));
-          highlightField(cb);
-          fieldsFilled++;
-        }
-      });
-    }
+    // 2. Consent Auto-Check Engine (Terms & Conditions / Privacy Policy Checkboxes)
+    fieldsFilled += executeConsentAutoCheck();
 
     // 3. Register hostname to Domain Memory Engine
     chrome.runtime.sendMessage({ action: "REGISTER_DOMAIN", domain: hostname });
@@ -334,6 +316,60 @@
         }
       }, 900);
     }
+  }
+
+  // Consent Auto-Check Engine: Automatically accepts terms, privacy policy & consent checkboxes
+  function executeConsentAutoCheck() {
+    if (currentProfile?.settings?.autoCheckTerms === false) return 0;
+
+    let checkedCount = 0;
+    // Scan both native input checkboxes and ARIA role="checkbox" elements (Workday / SPAs)
+    const checkboxElements = Array.from(document.querySelectorAll('input[type="checkbox"], [role="checkbox"]'));
+
+    checkboxElements.forEach(cb => {
+      const isConsent = window.UniversalMatcher.isConsentCheckbox(cb);
+      if (isConsent) {
+        if (cb.tagName === 'INPUT') {
+          if (!cb.checked) {
+            cb.checked = true;
+            cb.dispatchEvent(new Event('change', { bubbles: true }));
+            cb.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // Workday / SPA compatibility: Simulate direct click on associated label or parent wrapper
+            const label = cb.id ? document.querySelector(`label[for="${CSS.escape(cb.id)}"]`) : null;
+            if (label && isElementVisible(label)) {
+              label.click();
+            } else if (cb.parentElement && isElementVisible(cb.parentElement)) {
+              cb.parentElement.click();
+            } else {
+              cb.click();
+            }
+
+            highlightField(cb);
+            checkedCount++;
+          }
+        } else {
+          // Custom div/span with role="checkbox"
+          const isAriaChecked = cb.getAttribute('aria-checked') === 'true';
+          if (!isAriaChecked) {
+            cb.setAttribute('aria-checked', 'true');
+            cb.dispatchEvent(new Event('change', { bubbles: true }));
+            cb.dispatchEvent(new Event('input', { bubbles: true }));
+            if (isElementVisible(cb)) {
+              cb.click();
+            }
+            highlightField(cb);
+            checkedCount++;
+          }
+        }
+      }
+    });
+
+    if (checkedCount > 0) {
+      showToast(`📝 Consent Auto-Check Engine: Auto-accepted ${checkedCount} terms & privacy checkbox(es)!`, "success");
+    }
+
+    return checkedCount;
   }
 
   // Find Login Submit Button
@@ -563,7 +599,10 @@
       // Mark session flag immediately to ensure auto-auth runs exactly ONCE per page load
       sessionStorage.setItem('autoAuthTriggered', 'true');
 
-      showToast(`🔑 Auth Page Detected! Auto-triggering Login / Sign-Up (Alt+S)...`, "success");
+      // Consent Auto-Check Engine (Terms & Conditions / Privacy Policy Checkboxes)
+      executeConsentAutoCheck();
+
+      showToast(`🔑 Auth Page Detected! Auto-triggering Login / Sign-Up...`, "success");
       setTimeout(() => {
         performAutoSignUp();
       }, 500);
