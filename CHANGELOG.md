@@ -2,6 +2,21 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.11.0] - 2026-08-03
+
+### 🎯 Advanced Apply Button Hunter & Extension Health
+- **Broadened Selector Scope (`content/content_script.js`)**:
+  - Upgraded `performStartAutomation()` to query `button, a, input[type="button"], input[type="submit"], [role="button"]`.
+  - Smart container prioritization (`<main>`, `article`, `[role="main"]`, `#content`, `.job-details`) ensures proper button selection over headers, sidebars, and control menus on modern ATS platforms (IQVIA, Workday, Greenhouse, Lever).
+- **Flexible Text & Title Matching**:
+  - Detects `"apply"`, `"apply now"`, `"apply online"`, `"apply for this job"`, `"apply for position"`, `"start application"`, and `"apply manually"` across text content, values, `aria-label`, and `title` attributes.
+- **Element Visibility Check**:
+  - Enforces `isElementVisible(el)` (`offsetWidth > 0 && offsetHeight > 0`) to prevent clicking hidden mobile menus or template elements.
+- **Chrome Extension Warning Silencing**:
+  - Replaced `console.warn` when no apply button is found with `console.info` to prevent Chrome's Extension Management page (`chrome://extensions`) from flagging warnings as extension errors.
+
+---
+
 ## [1.10.0] - 2026-08-03
 
 ### 📝 Consent Auto-Check Engine (Terms & Privacy Auto-Acceptance)

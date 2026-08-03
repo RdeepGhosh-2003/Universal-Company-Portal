@@ -537,9 +537,9 @@
     }
   }
 
-  // On-Demand Automation Trigger (Alt+A / Start Automation Button)
+  // On-Demand Automation Trigger (Start Automation Button)
   function performStartAutomation() {
-    // Smart Selector: Prioritize main content containers over sidebars and headers
+    // 1. Broaden Selector Scope: Prioritize main content containers over sidebars and headers
     let scopeContainers = Array.from(document.querySelectorAll('main, article, [role="main"], #content, .job-details, .job-description'));
     if (scopeContainers.length === 0) {
       scopeContainers = [document.body];
@@ -547,34 +547,42 @@
 
     let candidates = [];
     scopeContainers.forEach(container => {
-      candidates.push(...Array.from(container.querySelectorAll('button, a, input[type="submit"], input[type="button"], [role="button"]')));
+      candidates.push(...Array.from(container.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"]')));
     });
 
     if (candidates.length === 0) {
-      candidates = Array.from(document.querySelectorAll('button, a, input[type="submit"], input[type="button"], [role="button"]'));
+      candidates = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"]'));
     }
 
+    // 2 & 3. Flexible Text Matching & Visibility Check
     const applyBtn = candidates.find(el => {
-      const text = (el.textContent || el.value || el.getAttribute('aria-label') || '').toLowerCase().trim();
+      if (!isElementVisible(el)) return false;
+      const text = (el.textContent || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || '').toLowerCase().trim();
 
       // Avoid search / filter / login / save / remove control buttons
       if (text.includes('filter') || text.includes('search') || text.includes('save') || text.includes('login') || text.includes('sign in') || text.includes('remove') || text.includes('delete')) return false;
 
       const isExactApply = text === 'apply';
-      const isApplyNow = text.includes('apply now') || text.includes('apply for this job') || text.includes('apply for position') || text.includes('start application') || text.includes('apply manually');
+      const isApplyNow = text.includes('apply now') ||
+                         text.includes('apply online') ||
+                         text.includes('apply for this job') ||
+                         text.includes('apply for position') ||
+                         text.includes('start application') ||
+                         text.includes('apply manually');
 
-      return (isExactApply || isApplyNow) && isElementVisible(el);
+      return isExactApply || isApplyNow;
     });
 
     if (applyBtn) {
-      const btnText = (applyBtn.textContent || applyBtn.value || 'Apply Now').trim();
+      const btnText = (applyBtn.textContent || applyBtn.value || applyBtn.getAttribute('aria-label') || 'Apply').trim();
       applyBtn.dataset.autofillNavClicked = "true";
       showToast(`🔥 Start Automation: Clicking "${btnText}"...`, "success");
       setTimeout(() => {
         applyBtn.click();
       }, 300);
     } else {
-      console.warn("Universal Auto-Fill Engine: No 'Apply' button found on current page.");
+      // 4. Silence Chrome Warnings: Use console.info instead of console.warn to prevent Extension errors
+      console.info("Universal Auto-Fill Engine: No 'Apply' button found on current page.");
       showToast(`⚠️ No 'Apply' button found on current page.`, "error");
     }
   }

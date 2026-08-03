@@ -99,11 +99,11 @@ Universal Company Portal/
 - **Instant Email Auto-Fill**: Automatically fills your saved Gmail / Email into inputs containing label/subtext like `"Email Address *"`, `"This is how we'll communicate with you."`, `"Work Email"`, or `"Email ID"` as soon as the page loads or when you focus on the field!
 - **Auto-Submit on Agreement Check**: Whenever you click/check an agreement checkbox (`"I agree with..."`, `"Terms & Conditions"`, `"Privacy Policy"`), the extension automatically triggers the primary **Next**, **Submit**, **Continue**, **Save & Continue**, or **Create Account** button!
 
-### 7. 🔥 On-Demand "Start Automation Engine" (`Alt + A`)
-- **On-Demand Initiation**: Press **`Alt + A`** or click **`🔥 Start Automation Engine`** in the popup to find and click the primary "Apply" or "Apply Now" button on any job board page.
-- **Smart Selector**: Prioritizes main content area (`<main>`, `article`) over headers, sidebars, or control buttons.
+### 7. 🔥 On-Demand "Start Automation Engine"
+- **On-Demand Initiation**: Click **`🔥 Start Automation Engine`** in the popup to find and click the primary "Apply", "Apply Now", "Apply Online", or "Apply Manually" button on any ATS job board page (IQVIA, Workday, Greenhouse, Lever, Indeed).
+- **Advanced Apply Button Hunter**: Queries buttons, links, input buttons, and ARIA roles across main content areas (`<main>`, `article`) while evaluating text, values, aria-labels, and title attributes.
+- **Element Visibility Check**: Ensures target elements are visible on page (`offsetWidth > 0 && offsetHeight > 0`) before clicking.
 - **Workday Modal Bypass**: Retains automated `"Apply Manually"` auto-click when Workday modals appear to bypass resume parsing.
-- **Settings Toggle**: Enable/disable under Profile Manager -> Settings -> **`Auto-Click 'Apply Now' and 'Apply Manually' on Job Pages`**.
 
 ### 8. 🔑 Auto-Auth Trigger (Automatic Master Action Execution)
 - **Automatic Execution**: Detects account creation / login forms (`<input type="password">`, "Create Account", "Sign In", "Verify New Password") and triggers Master Action routing (`Alt+S`) automatically.
