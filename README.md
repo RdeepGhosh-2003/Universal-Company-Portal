@@ -106,10 +106,10 @@ Universal Company Portal/
 - **Element Visibility Check**: Ensures target elements are visible on page (`offsetWidth > 0 && offsetHeight > 0`) before clicking.
 - **Workday Modal Bypass**: Retains automated `"Apply Manually"` auto-click when Workday modals appear to bypass resume parsing.
 
-### 8. 🔑 Auto-Auth Trigger (Automatic Master Action Execution)
-- **Automatic Execution**: Detects account creation / login forms (`<input type="password">`, "Create Account", "Sign In", "Verify New Password") and triggers Master Action routing (`Alt+S`) automatically.
-- **Workday Account Support**: Fills Email, Password, and "Verify New Password" fields seamlessly.
-- **Loop Protection**: Uses a `sessionStorage` flag to guarantee execution runs **exactly once** per page load.
+### 8. 🔑 Dual-Mode Auto-Auth Engine (Create Account & Sign In Fallback)
+- **Dual-Mode Detection**: Dynamically inspects auth form fields on screen. If `confirmPassword` / verify password is present, executes **Mode A (Account Creation)**. If absent, switches to **Mode B (Sign In)**.
+- **Workday Account & Sign-In Support**: Auto-injects Email & Password into `[data-automation-id="email"]` and `[data-automation-id="password"]` using React-safe setters, then triggers `[data-automation-id="signInSubmitButton"]` or `[data-automation-id="createAccountSubmitButton"]`.
+- **Loop Protection**: Uses a dynamic `formKey` to guarantee execution runs **exactly once** per form view.
 - **Settings Toggle**: Enable/disable under Profile Manager -> Settings -> **`Auto-Trigger Login & Sign-Up on Auth Pages`**.
 
 ### 9. 📝 Consent Auto-Check Engine (Terms & Privacy Auto-Acceptance)

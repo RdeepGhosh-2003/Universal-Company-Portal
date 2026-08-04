@@ -272,11 +272,19 @@
 
       const isRegistered = registeredDomains.some(d => d.toLowerCase() && (hostname.includes(d.toLowerCase()) || d.toLowerCase().includes(hostname)));
 
-      if (isRegistered) {
-        // LOGIN MODE: Auto-fill saved credentials and submit login
+      // Dual-Mode Auth Detection: Check if confirmPassword / verify password input exists on screen
+      const confirmPassEl = document.querySelector('[data-automation-id="confirmPassword"]') ||
+                            Array.from(document.querySelectorAll('input[type="password"]')).find(el => {
+                              const txt = window.UniversalMatcher.getElementLabelText(el);
+                              return txt.includes('verify') || txt.includes('confirm') || txt.includes('re-enter');
+                            });
+      const isCreateAccountMode = confirmPassEl && isElementVisible(confirmPassEl);
+
+      if (isRegistered || !isCreateAccountMode) {
+        // Mode B (Sign In): Auto-fill saved credentials and submit login
         executeLoginFlow(hostname);
       } else {
-        // SIGN-UP MODE: Auto-fill registration, check terms, submit & register domain
+        // Mode A (Create Account): Auto-fill registration, check terms, submit & register domain
         executeSignUpFlow(hostname);
       }
     });
@@ -285,15 +293,18 @@
   function executeLoginFlow(hostname) {
     executeFill("CREDENTIALS");
     executeConsentAutoCheck();
-    showToast(`🔑 Recognized Portal (${hostname})! Auto-logging in...`, "success");
+    showToast(`🔑 Recognized Auth Form on ${hostname}! Auto-signing in...`, "success");
 
+    // 200ms delay to allow React / Angular SPA state handlers to register injected text
     setTimeout(() => {
       const loginBtn = findLoginSubmitButton();
       if (loginBtn) {
-        showToast(`🔑 Logging into ${hostname}...`, "success");
+        showToast(`🔑 Signing into ${hostname}...`, "success");
         loginBtn.click();
+      } else {
+        showToast(`⚠️ Filled credentials, but could not locate Sign In submit button.`, "info");
       }
-    }, 600);
+    }, 250);
   }
 
   function executeSignUpFlow(hostname) {
@@ -326,7 +337,7 @@
           showToast(`🚀 Submitting account creation...`, "success");
           submitBtn.click();
         }
-      }, 900);
+      }, 300);
     }
   }
 
@@ -386,37 +397,47 @@
 
   // Find Login Submit Button
   function findLoginSubmitButton() {
-    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], a.btn, [role="button"]'));
-    const targetKeywords = ['log in', 'login', 'sign in', 'signin', 'log-in', 'sign-in', 'continue', 'submit'];
+    // 1. Workday specific automation ID queries
+    const workdayBtn = document.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="click_sub"], [data-automation-id="signInButton"]');
+    if (workdayBtn && isElementVisible(workdayBtn)) return workdayBtn;
+
+    // 2. Query visible candidate buttons by keyword
+    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a.btn, [role="button"]'));
+    const targetKeywords = ['sign in', 'log in', 'login', 'signin', 'log-in', 'sign-in', 'continue', 'submit'];
 
     for (const kw of targetKeywords) {
       const btn = candidates.find(b => {
-        const txt = (b.textContent || b.value || b.getAttribute('aria-label') || '').toLowerCase().trim();
-        return txt.includes(kw) && b.offsetWidth > 0 && b.offsetHeight > 0;
+        const txt = (b.textContent || b.value || b.getAttribute('aria-label') || b.getAttribute('data-automation-id') || '').toLowerCase().trim();
+        return txt.includes(kw) && isElementVisible(b);
       });
       if (btn) return btn;
     }
 
     const formSubmit = document.querySelector('form input[type="submit"], form button[type="submit"]');
-    return formSubmit || null;
+    return (formSubmit && isElementVisible(formSubmit)) ? formSubmit : null;
   }
 
   // Find Sign-Up Submit Button
   function findSignUpSubmitButton() {
-    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], a.btn, [role="button"]'));
+    // 1. Workday specific automation ID queries
+    const workdayBtn = document.querySelector('[data-automation-id="createAccountSubmitButton"], [data-automation-id="click_sub"], [data-automation-id="registerSubmitButton"]');
+    if (workdayBtn && isElementVisible(workdayBtn)) return workdayBtn;
+
+    // 2. Query visible candidate buttons by keyword
+    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a.btn, [role="button"]'));
     const targetKeywords = ['create account', 'sign up', 'signup', 'register', 'create profile', 'join now', 'complete registration', 'submit'];
 
     for (const kw of targetKeywords) {
       const btn = candidates.find(b => {
-        const txt = (b.textContent || b.value || b.getAttribute('aria-label') || '').toLowerCase().trim();
-        return txt.includes(kw);
+        const txt = (b.textContent || b.value || b.getAttribute('aria-label') || b.getAttribute('data-automation-id') || '').toLowerCase().trim();
+        return txt.includes(kw) && isElementVisible(b);
       });
       if (btn) return btn;
     }
 
     // Fallback to first form submit button
     const formSubmit = document.querySelector('form input[type="submit"], form button[type="submit"]');
-    return formSubmit || null;
+    return (formSubmit && isElementVisible(formSubmit)) ? formSubmit : null;
   }
 
   // Setup Agreement Checkbox Listeners (Auto-click Next/Submit when "I agree with..." is checked)

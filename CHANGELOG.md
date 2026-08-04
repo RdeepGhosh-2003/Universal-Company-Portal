@@ -2,6 +2,18 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.14.0] - 2026-08-04
+
+### 🔑 Dual-Mode Workday Auto-Auth Engine (Sign In Fallback)
+- **Dual-Mode Auth Detection (`content/content_script.js`)**:
+  - Automatically evaluates auth form fields on screen. If `confirmPassword` input exists and is visible, executes **Mode A (Account Creation)**. If `confirmPassword` is absent, switches to **Mode B (Sign In)**.
+- **Sign-In Mode Logic (`content/content_script.js`)**:
+  - Injects email and password into `[data-automation-id="email"]` and `[data-automation-id="password"]` using React-safe setters.
+  - Queries `[data-automation-id="signInSubmitButton"]`, `[data-automation-id="click_sub"]`, or `[data-automation-id="signInButton"]` (with fallback to visible `"Sign In"` / `"Log In"` buttons).
+  - Implemented 200ms delay prior to submit click to allow React / Angular SPA state handlers to register injected text cleanly.
+
+---
+
 ## [1.13.0] - 2026-08-04
 
 ### 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
