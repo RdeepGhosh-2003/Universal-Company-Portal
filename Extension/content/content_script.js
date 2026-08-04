@@ -158,7 +158,7 @@
     const inputs = document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]), select, textarea');
 
     inputs.forEach(el => {
-      // 1. Direct Workday data-automation-id matching
+      // 1. Direct Workday data-automation-id matching (Strict 1:1)
       const automationId = el.getAttribute('data-automation-id');
       let match = null;
 
@@ -166,29 +166,37 @@
         match = window.UniversalMatcher.matchWorkdayAutomationId(automationId, currentProfile);
       }
 
-      // 2. Fallback to general semantic matcher if no direct Workday automation ID match
+      // 2. Fallback to general semantic matcher ONLY if not a core Workday automation ID field
       if (!match) {
         match = window.UniversalMatcher.matchField(el, currentProfile, mode);
       }
 
-      if (match && match.value !== undefined && match.value !== null && match.value !== "") {
-        const tagName = el.tagName.toLowerCase();
-        const type = (el.type || '').toLowerCase();
-
-        let filledSuccess = false;
-
-        if (tagName === 'select') {
-          filledSuccess = setSelectValue(el, match.value);
-        } else if (type === 'radio' || type === 'checkbox') {
-          filledSuccess = setRadioOrCheckbox(el, match.value);
-        } else {
-          setNativeValue(el, match.value);
-          filledSuccess = true;
+      if (match && match.value !== undefined && match.value !== null) {
+        // If it's a Workday Core field with an empty string (""), inject empty string and skip Q&A matching
+        if (match.isWorkdayCore && match.value === "") {
+          setNativeValue(el, "");
+          return;
         }
 
-        if (filledSuccess) {
-          filledCount++;
-          highlightField(el);
+        if (match.value !== "") {
+          const tagName = el.tagName.toLowerCase();
+          const type = (el.type || '').toLowerCase();
+
+          let filledSuccess = false;
+
+          if (tagName === 'select') {
+            filledSuccess = setSelectValue(el, match.value);
+          } else if (type === 'radio' || type === 'checkbox') {
+            filledSuccess = setRadioOrCheckbox(el, match.value);
+          } else {
+            setNativeValue(el, match.value);
+            filledSuccess = true;
+          }
+
+          if (filledSuccess) {
+            filledCount++;
+            highlightField(el);
+          }
         }
       }
     });
@@ -199,6 +207,13 @@
 
       customDropdowns.forEach(widget => {
         if (!isElementVisible(widget)) return;
+
+        // Skip Workday Core dropdowns (like countryRegion or phone-device-type) from screening Q&A fuzzy matching
+        const automationId = widget.getAttribute('data-automation-id');
+        if (automationId && window.UniversalMatcher.matchWorkdayAutomationId(automationId, currentProfile)) {
+          return;
+        }
+
         const labelText = window.UniversalMatcher.getElementLabelText(widget);
         if (!labelText) return;
 

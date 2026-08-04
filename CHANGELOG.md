@@ -2,6 +2,18 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.16.1] - 2026-08-04
+
+### 🛠️ Hotfix: "Shotgun Effect" Isolation & Strict 1:1 Workday Field Mapping
+- **Bypass Fuzzy Q&A Matching for Core Fields (`content/content_script.js` & `content/matcher.js`)**:
+  - Isolated predefined Workday `data-automation-id` fields (`legalNameSection_firstName`, `addressSection_addressLine1`, `addressSection_city`, `phone-number`, etc.) so they exclusively pull from Personal Details and bypass screening Q&A fuzzy matching.
+- **Strict 1:1 Personal Details Mapping**:
+  - Enforced 1:1 exact mapping for `firstName`, `middleName`, `lastName`, `addressLine1`, `addressLine2`, `addressLine3`, `city`, `state`, `zipCode`, and `phoneExtension`.
+- **Data Formatting & Empty String Fallback (`content/matcher.js`)**:
+  - Configured `addressLine2`, `addressLine3`, and `middleName` to return explicit empty strings (`""`) rather than `undefined` or falling back to `addressLine1`/`fullName` to prevent React UI artifacting.
+
+---
+
 ## [1.16.0] - 2026-08-04
 
 ### 🏢 Workday Custom Dropdown Handler & Expanded Automation Dictionary

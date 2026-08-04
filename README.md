@@ -120,6 +120,7 @@ Universal Company Portal/
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
 - **Direct Automation ID Mapping**: Links profile JSON directly to Workday internal automation IDs (`legalNameSection_firstName`, `addressSection_addressLine1`, `phone-device-type`, `phone-number`, `email`, etc.).
+- **Shotgun Effect Isolation**: Isolates predefined Workday core fields from fuzzy screening Q&A matcher to guarantee strict 1:1 mapping and prevent addressLine2/middleName artifacting.
 - **Workday Custom Dropdown Handler**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `div[role="combobox"]`) on "Application Questions" and "Voluntary Disclosures" steps.
 - **React-Safe State Setter**: Uses native prototype setters (`HTMLInputElement.prototype.value.set`) and dispatches `input`, `change`, and `blur` events so React/SPA state updates cleanly without validation errors.
 

@@ -258,25 +258,37 @@ window.UniversalMatcher = (function() {
     'legal statement', 'data processing', 'terms & conditions', 'policy'
   ];
 
-  // Dedicated Workday data-automation-id mapping dictionary
+  // Strict 1:1 Workday data-automation-id mapping dictionary
   const WORKDAY_AUTOMATION_MAP = [
-    { ids: ['legalnamesection_firstname', 'firstname', 'legalname_firstname'], path: 'personal.firstName' },
-    { ids: ['legalnamesection_lastname', 'lastname', 'legalname_lastname'], path: 'personal.lastName' },
-    { ids: ['legalnamesection_fullname', 'fullname'], path: 'personal.fullName' },
-    { ids: ['addresssection_addressline1', 'addressline1', 'streetaddress'], path: 'personal.address' },
-    { ids: ['addresssection_city', 'city'], path: 'personal.city' },
-    { ids: ['addresssection_countryregion', 'state', 'province'], path: 'personal.state' },
-    { ids: ['addresssection_postalcode', 'postalcode', 'zipcode', 'zip'], path: 'personal.zipCode' },
-    { ids: ['addresssection_country', 'country'], path: 'personal.country' },
-    { ids: ['phone-device-type', 'devicetype', 'phonetype'], path: 'personal.phoneType' },
-    { ids: ['phone-number', 'contactinformationpage_phonenumber', 'phonenumber', 'phone'], path: 'personal.phone' },
-    { ids: ['email', 'contactinformationpage_email', 'emailaddress'], path: 'credentials.email' },
-    { ids: ['linkedin', 'website', 'portfolio'], path: 'personal.linkedin' },
-    { ids: ['github'], path: 'personal.github' }
+    // Legal Name Section
+    { ids: ['legalnamesection_firstname', 'firstname', 'legalname_firstname'], path: 'personal.firstName', defaultVal: "" },
+    { ids: ['legalnamesection_middlename', 'middlename', 'legalname_middlename'], path: 'personal.middleName', defaultVal: "" },
+    { ids: ['legalnamesection_lastname', 'lastname', 'legalname_lastname'], path: 'personal.lastName', defaultVal: "" },
+    { ids: ['legalnamesection_fullname', 'fullname'], path: 'personal.fullName', defaultVal: "" },
+
+    // Address Section
+    { ids: ['addresssection_addressline1', 'addressline1', 'streetaddress'], path: 'personal.address', defaultVal: "" },
+    { ids: ['addresssection_addressline2', 'addressline2'], path: 'personal.addressLine2', defaultVal: "" },
+    { ids: ['addresssection_addressline3', 'addressline3'], path: 'personal.addressLine3', defaultVal: "" },
+    { ids: ['addresssection_city', 'city'], path: 'personal.city', defaultVal: "" },
+    { ids: ['addresssection_countryregion', 'state', 'province'], path: 'personal.state', defaultVal: "" },
+    { ids: ['addresssection_postalcode', 'postalcode', 'zipcode', 'zip'], path: 'personal.zipCode', defaultVal: "" },
+    { ids: ['addresssection_country', 'country'], path: 'personal.country', defaultVal: "" },
+
+    // Phone & Contact Section
+    { ids: ['phone-device-type', 'devicetype', 'phonetype'], path: 'personal.phoneType', defaultVal: "Mobile" },
+    { ids: ['phoneextension', 'phone-extension'], path: 'personal.phoneExtension', defaultVal: "" },
+    { ids: ['phone-number', 'contactinformationpage_phonenumber', 'phonenumber', 'phone'], path: 'personal.phone', defaultVal: "" },
+    { ids: ['email', 'contactinformationpage_email', 'emailaddress'], path: 'credentials.email', defaultVal: "" },
+
+    // Links & Socials
+    { ids: ['linkedin', 'website', 'portfolio'], path: 'personal.linkedin', defaultVal: "" },
+    { ids: ['github'], path: 'personal.github', defaultVal: "" }
   ];
 
   /**
-   * Directly matches Workday internal data-automation-id attributes to profile data
+   * Directly matches Workday internal data-automation-id attributes to profile data.
+   * Enforces strict 1:1 mapping and prevents fallback artifacting for addressLine2/3 and middleName.
    */
   function matchWorkdayAutomationId(automationId, profile) {
     if (!automationId || !profile) return null;
@@ -285,9 +297,9 @@ window.UniversalMatcher = (function() {
     for (const item of WORKDAY_AUTOMATION_MAP) {
       if (item.ids.some(id => cleanId.includes(id))) {
         const val = getNestedValue(profile, item.path);
-        if (val !== null && val !== undefined && val !== "") {
-          return { value: val, path: item.path };
-        }
+        // Explicitly return string value or defaultVal ("") rather than falling back to invalid properties
+        const finalValue = (val !== null && val !== undefined) ? String(val) : (item.defaultVal !== undefined ? item.defaultVal : "");
+        return { value: finalValue, path: item.path, isWorkdayCore: true };
       }
     }
     return null;
