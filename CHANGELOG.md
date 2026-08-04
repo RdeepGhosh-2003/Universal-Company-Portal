@@ -2,6 +2,19 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.12.1] - 2026-08-04
+
+### 🛠️ Hotfix: Apply Button Phrase Expansion & Iframe Fallback
+- **Expanded Button Matching Phrases (`content/content_script.js`)**:
+  - Added `"apply for job"` (Barclays portal), `"apply for a job"`, `"apply to job"`, and `"apply today"` to target phrases.
+- **Enhanced Matching Logic (`content/content_script.js`)**:
+  - Updated matching condition to check if button text matches valid phrases OR starts with `"apply"` while filtering out negative keywords (`filter`, `search`, `save`, `login`, `sign in`, `remove`, `delete`, `share`, `help`, `menu`).
+- **Same-Origin Iframe & Container Sorting Fallback**:
+  - Automatically queries candidate buttons within embedded same-origin ATS iframes (Workday, Phenom, Barclays, Taleo).
+  - Prioritizes candidates within `<main>`, `article`, `[role="main"]`, `#content`, `.job-details`.
+
+---
+
 ## [1.12.0] - 2026-08-03
 
 ### 🔑 Workday Create Account Auto-Auth & Attribute Engine

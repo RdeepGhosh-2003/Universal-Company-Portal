@@ -539,44 +539,59 @@
 
   // On-Demand Automation Trigger (Start Automation Button)
   function performStartAutomation() {
-    // 1. Broaden Selector Scope: Prioritize main content containers over sidebars and headers
-    let scopeContainers = Array.from(document.querySelectorAll('main, article, [role="main"], #content, .job-details, .job-description'));
-    if (scopeContainers.length === 0) {
-      scopeContainers = [document.body];
-    }
+    const validPhrases = [
+      'apply', 'apply now', 'apply online', 'apply for job', 'apply for a job',
+      'apply for this job', 'apply for position', 'apply to job', 'apply today',
+      'start application', 'apply manually', 'submit application'
+    ];
+    const negativeWords = ['filter', 'search', 'save', 'login', 'sign in', 'remove', 'delete', 'share', 'help', 'menu'];
 
-    let candidates = [];
-    scopeContainers.forEach(container => {
-      candidates.push(...Array.from(container.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"]')));
+    // 1. Broaden Selector Scope & Collect Candidates
+    let candidates = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"]'));
+
+    // Check same-origin iframes for embedded ATS forms (Barclays, Workday, Taleo, Phenom)
+    try {
+      const iframes = Array.from(document.querySelectorAll('iframe'));
+      iframes.forEach(iframe => {
+        try {
+          if (iframe.contentDocument) {
+            const iframeCandidates = Array.from(iframe.contentDocument.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"]'));
+            candidates.push(...iframeCandidates);
+          }
+        } catch (e) {
+          // Cross-origin iframe, ignore
+        }
+      });
+    } catch (e) {}
+
+    // Sort candidates: prioritize elements within <main>, article, [role="main"], #content, .job-details
+    candidates.sort((a, b) => {
+      const aInMain = a.closest('main, article, [role="main"], #content, .job-details, .job-description') ? 1 : 0;
+      const bInMain = b.closest('main, article, [role="main"], #content, .job-details, .job-description') ? 1 : 0;
+      return bInMain - aInMain;
     });
-
-    if (candidates.length === 0) {
-      candidates = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"]'));
-    }
 
     // 2 & 3. Flexible Text Matching & Visibility Check
     const applyBtn = candidates.find(el => {
       if (!isElementVisible(el)) return false;
-      const text = (el.textContent || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || '').toLowerCase().trim();
+      const btnText = (el.textContent || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || '').toLowerCase().trim();
 
-      // Avoid search / filter / login / save / remove control buttons
-      if (text.includes('filter') || text.includes('search') || text.includes('save') || text.includes('login') || text.includes('sign in') || text.includes('remove') || text.includes('delete')) return false;
+      if (!btnText) return false;
 
-      const isExactApply = text === 'apply';
-      const isApplyNow = text.includes('apply now') ||
-                         text.includes('apply online') ||
-                         text.includes('apply for this job') ||
-                         text.includes('apply for position') ||
-                         text.includes('start application') ||
-                         text.includes('apply manually');
+      // Filter negative words first
+      if (negativeWords.some(word => btnText.includes(word))) return false;
 
-      return isExactApply || isApplyNow;
+      // Match criteria: Exact valid phrase OR startsWith("apply")
+      const isMatch = validPhrases.includes(btnText) ||
+                      (btnText.startsWith('apply') && !negativeWords.some(word => btnText.includes(word)));
+
+      return isMatch;
     });
 
     if (applyBtn) {
-      const btnText = (applyBtn.textContent || applyBtn.value || applyBtn.getAttribute('aria-label') || 'Apply').trim();
+      const displayBtnText = (applyBtn.textContent || applyBtn.value || applyBtn.getAttribute('aria-label') || 'Apply').trim();
       applyBtn.dataset.autofillNavClicked = "true";
-      showToast(`🔥 Start Automation: Clicking "${btnText}"...`, "success");
+      showToast(`🔥 Start Automation: Clicking "${displayBtnText}"...`, "success");
       setTimeout(() => {
         applyBtn.click();
       }, 300);

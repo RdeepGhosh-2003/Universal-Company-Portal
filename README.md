@@ -100,8 +100,9 @@ Universal Company Portal/
 - **Auto-Submit on Agreement Check**: Whenever you click/check an agreement checkbox (`"I agree with..."`, `"Terms & Conditions"`, `"Privacy Policy"`), the extension automatically triggers the primary **Next**, **Submit**, **Continue**, **Save & Continue**, or **Create Account** button!
 
 ### 7. 🔥 On-Demand "Start Automation Engine"
-- **On-Demand Initiation**: Click **`🔥 Start Automation Engine`** in the popup to find and click the primary "Apply", "Apply Now", "Apply Online", or "Apply Manually" button on any ATS job board page (IQVIA, Workday, Greenhouse, Lever, Indeed).
-- **Advanced Apply Button Hunter**: Queries buttons, links, input buttons, and ARIA roles across main content areas (`<main>`, `article`) while evaluating text, values, aria-labels, and title attributes.
+- **On-Demand Initiation**: Click **`🔥 Start Automation Engine`** in the popup to find and click the primary "Apply", "Apply Now", "Apply for job", "Apply Online", or "Apply Manually" button on any ATS job board page (Barclays, IQVIA, Workday, Greenhouse, Lever, Indeed).
+- **Advanced Apply Button Hunter**: Queries buttons, links, input buttons, and ARIA roles across main content areas (`<main>`, `article`) and embedded ATS iframes.
+- **Dynamic Text Matching**: Matches exact phrases or any button starting with `"apply"` (while filtering negative terms like `"search"`, `"save"`, `"login"`).
 - **Element Visibility Check**: Ensures target elements are visible on page (`offsetWidth > 0 && offsetHeight > 0`) before clicking.
 - **Workday Modal Bypass**: Retains automated `"Apply Manually"` auto-click when Workday modals appear to bypass resume parsing.
 
