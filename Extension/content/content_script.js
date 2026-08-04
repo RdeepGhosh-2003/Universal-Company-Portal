@@ -295,7 +295,7 @@
     executeConsentAutoCheck();
     showToast(`🔑 Recognized Auth Form on ${hostname}! Auto-signing in...`, "success");
 
-    // 200ms delay to allow React / Angular SPA state handlers to register injected text
+    // 500ms React State Delay: Guarantees Workday React virtual DOM has fully registered injected values
     setTimeout(() => {
       const loginBtn = findLoginSubmitButton();
       if (loginBtn) {
@@ -304,7 +304,7 @@
       } else {
         showToast(`⚠️ Filled credentials, but could not locate Sign In submit button.`, "info");
       }
-    }, 250);
+    }, 500);
   }
 
   function executeSignUpFlow(hostname) {
@@ -337,7 +337,7 @@
           showToast(`🚀 Submitting account creation...`, "success");
           submitBtn.click();
         }
-      }, 300);
+      }, 500);
     }
   }
 
@@ -395,14 +395,21 @@
     return checkedCount;
   }
 
-  // Find Login Submit Button
+  // Find Login Submit Button with Workday Selectors & XPath Fallback
   function findLoginSubmitButton() {
-    // 1. Workday specific automation ID queries
-    const workdayBtn = document.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="click_sub"], [data-automation-id="signInButton"]');
-    if (workdayBtn && isElementVisible(workdayBtn)) return workdayBtn;
+    // 1. Broadened Workday / SPA query selectors
+    const signInBtn = document.querySelector(
+      '[data-automation-id="signInSubmitButton"], ' +
+      'button[aria-label="Sign In"], ' +
+      'div[data-automation-id="click_filter"], ' +
+      '[data-automation-id="click_sub"], ' +
+      '[data-automation-id="signInButton"], ' +
+      '[data-automation-id="loginSubmitButton"]'
+    );
+    if (signInBtn && isElementVisible(signInBtn)) return signInBtn;
 
     // 2. Query visible candidate buttons by keyword
-    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a.btn, [role="button"]'));
+    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a.btn, [role="button"], div[role="button"]'));
     const targetKeywords = ['sign in', 'log in', 'login', 'signin', 'log-in', 'sign-in', 'continue', 'submit'];
 
     for (const kw of targetKeywords) {
@@ -412,6 +419,21 @@
       });
       if (btn) return btn;
     }
+
+    // 3. XPath fallback for visible buttons containing exact text "Sign In"
+    try {
+      const xpathResult = document.evaluate(
+        '//*[self::button or self::div or self::a or self::input][translate(normalize-space(text()), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")="sign in" or contains(translate(normalize-space(text()), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "sign in")]',
+        document,
+        null,
+        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+        null
+      );
+      for (let i = 0; i < xpathResult.snapshotLength; i++) {
+        const node = xpathResult.snapshotItem(i);
+        if (isElementVisible(node)) return node;
+      }
+    } catch (e) {}
 
     const formSubmit = document.querySelector('form input[type="submit"], form button[type="submit"]');
     return (formSubmit && isElementVisible(formSubmit)) ? formSubmit : null;

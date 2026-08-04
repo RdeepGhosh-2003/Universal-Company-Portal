@@ -108,7 +108,8 @@ Universal Company Portal/
 
 ### 8. 🔑 Dual-Mode Auto-Auth Engine (Create Account & Sign In Fallback)
 - **Dual-Mode Detection**: Dynamically inspects auth form fields on screen. If `confirmPassword` / verify password is present, executes **Mode A (Account Creation)**. If absent, switches to **Mode B (Sign In)**.
-- **Workday Account & Sign-In Support**: Auto-injects Email & Password into `[data-automation-id="email"]` and `[data-automation-id="password"]` using React-safe setters, then triggers `[data-automation-id="signInSubmitButton"]` or `[data-automation-id="createAccountSubmitButton"]`.
+- **Workday Account & Sign-In Support**: Auto-injects Email & Password into `[data-automation-id="email"]` and `[data-automation-id="password"]` using React-safe setters, then triggers `[data-automation-id="signInSubmitButton"]`, `button[aria-label="Sign In"]`, or `div[data-automation-id="click_filter"]`.
+- **500ms React State Delay**: Applies a 500ms delay after credential injection to resolve ghost clicks and ensure Workday's React state registers injected values before submission.
 - **Loop Protection**: Uses a dynamic `formKey` to guarantee execution runs **exactly once** per form view.
 - **Settings Toggle**: Enable/disable under Profile Manager -> Settings -> **`Auto-Trigger Login & Sign-Up on Auth Pages`**.
 

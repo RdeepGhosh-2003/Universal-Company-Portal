@@ -2,6 +2,17 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.14.1] - 2026-08-04
+
+### 🛠️ Hotfix: Ghost Click Fix & 500ms React State Delay
+- **500ms React Virtual DOM Delay (`content/content_script.js`)**:
+  - Increased the post-injection delay in `executeLoginFlow` to 500ms to guarantee Workday's React state handlers process injected credentials before the submit click fires.
+- **Broadened Sign-In Button Queries & XPath Fallback (`content/content_script.js`)**:
+  - Expanded `findLoginSubmitButton` to query `[data-automation-id="signInSubmitButton"]`, `button[aria-label="Sign In"]`, `div[data-automation-id="click_filter"]`, `[data-automation-id="click_sub"]`, `[data-automation-id="signInButton"]`, and `[data-automation-id="loginSubmitButton"]`.
+  - Added an XPath fallback to locate visible elements containing exact text `"Sign In"`.
+
+---
+
 ## [1.14.0] - 2026-08-04
 
 ### 🔑 Dual-Mode Workday Auto-Auth Engine (Sign In Fallback)
