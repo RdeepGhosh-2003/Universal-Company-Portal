@@ -117,6 +117,10 @@ Universal Company Portal/
 - **Workday & SPA Custom Checkbox Support**: Handles native `<input type="checkbox">` and custom `role="checkbox"` elements with label/wrapper click simulation.
 - **Seamless Auto-Auth Pipeline**: Executes immediately prior to form submission during account registration and login sequences.
 
+### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
+- **Direct Automation ID Mapping**: Links profile JSON directly to Workday internal automation IDs (`legalNameSection_firstName`, `addressSection_addressLine1`, `phone-number`, `email`, etc.) on the "My Information" step.
+- **React-Safe State Setter**: Uses native prototype setters (`HTMLInputElement.prototype.value.set`) and dispatches `input`, `change`, and `blur` events so React/SPA state updates cleanly without validation errors.
+
 ---
 
 ## ⚡ Extension Action Buttons Summary

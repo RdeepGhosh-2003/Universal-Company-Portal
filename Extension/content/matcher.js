@@ -258,6 +258,40 @@ window.UniversalMatcher = (function() {
     'legal statement', 'data processing', 'terms & conditions', 'policy'
   ];
 
+  // Dedicated Workday data-automation-id mapping dictionary
+  const WORKDAY_AUTOMATION_MAP = [
+    { ids: ['legalnamesection_firstname', 'firstname', 'legalname_firstname'], path: 'personal.firstName' },
+    { ids: ['legalnamesection_lastname', 'lastname', 'legalname_lastname'], path: 'personal.lastName' },
+    { ids: ['legalnamesection_fullname', 'fullname'], path: 'personal.fullName' },
+    { ids: ['addresssection_addressline1', 'addressline1', 'streetaddress'], path: 'personal.address' },
+    { ids: ['addresssection_city', 'city'], path: 'personal.city' },
+    { ids: ['addresssection_countryregion', 'state', 'province'], path: 'personal.state' },
+    { ids: ['addresssection_postalcode', 'postalcode', 'zipcode', 'zip'], path: 'personal.zipCode' },
+    { ids: ['addresssection_country', 'country'], path: 'personal.country' },
+    { ids: ['phone-number', 'contactinformationpage_phonenumber', 'phonenumber', 'phone'], path: 'personal.phone' },
+    { ids: ['email', 'contactinformationpage_email', 'emailaddress'], path: 'credentials.email' },
+    { ids: ['linkedin', 'website', 'portfolio'], path: 'personal.linkedin' },
+    { ids: ['github'], path: 'personal.github' }
+  ];
+
+  /**
+   * Directly matches Workday internal data-automation-id attributes to profile data
+   */
+  function matchWorkdayAutomationId(automationId, profile) {
+    if (!automationId || !profile) return null;
+    const cleanId = automationId.toLowerCase().trim();
+
+    for (const item of WORKDAY_AUTOMATION_MAP) {
+      if (item.ids.some(id => cleanId.includes(id))) {
+        const val = getNestedValue(profile, item.path);
+        if (val !== null && val !== undefined && val !== "") {
+          return { value: val, path: item.path };
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * Helper to determine if a checkbox or role="checkbox" element is for consent/terms
    */
@@ -279,6 +313,7 @@ window.UniversalMatcher = (function() {
 
   return {
     matchField,
+    matchWorkdayAutomationId,
     getElementLabelText,
     isSearchInput,
     isConsentCheckbox

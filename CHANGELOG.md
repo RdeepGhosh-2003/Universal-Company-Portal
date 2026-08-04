@@ -2,6 +2,29 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.13.0] - 2026-08-04
+
+### 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
+- **Workday Automation ID Mapping Dictionary (`content/matcher.js`)**:
+  - Created `WORKDAY_AUTOMATION_MAP` dictionary linking profile data directly to Workday internal automation IDs:
+    - `legalNameSection_firstName`, `firstName` ➔ `personal.firstName`
+    - `legalNameSection_lastName`, `lastName` ➔ `personal.lastName`
+    - `addressSection_addressLine1`, `addressLine1` ➔ `personal.address`
+    - `addressSection_city`, `city` ➔ `personal.city`
+    - `addressSection_countryRegion`, `state` ➔ `personal.state`
+    - `addressSection_postalCode`, `postalCode` ➔ `personal.zipCode`
+    - `phone-number`, `contactInformationPage_phoneNumber`, `phoneNumber` ➔ `personal.phone`
+    - `email`, `contactInformationPage_email` ➔ `credentials.email`
+    - `linkedin`, `website` ➔ `personal.linkedin`
+  - Exported `matchWorkdayAutomationId(automationId, profile)` helper in `UniversalMatcher`.
+- **React-Safe Data Injection (`content/content_script.js`)**:
+  - Enhanced `setNativeValue` using native property setters (`HTMLInputElement.prototype`, `HTMLTextAreaElement.prototype`) to update React/SPA internal state.
+  - Automatically dispatches `input`, `change`, and `blur` events immediately after injection.
+- **Trigger Wiring (`content/content_script.js`)**:
+  - Wired `performAutoFill` (`TRIGGER_AUTOFILL`) to query all `[data-automation-id]` fields first and execute React-safe injection across the "My Information" step.
+
+---
+
 ## [1.12.1] - 2026-08-04
 
 ### 🛠️ Hotfix: Apply Button Phrase Expansion & Iframe Fallback

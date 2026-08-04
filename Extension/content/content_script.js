@@ -158,7 +158,19 @@
     const inputs = document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]), select, textarea');
 
     inputs.forEach(el => {
-      const match = window.UniversalMatcher.matchField(el, currentProfile, mode);
+      // 1. Direct Workday data-automation-id matching
+      const automationId = el.getAttribute('data-automation-id');
+      let match = null;
+
+      if (automationId) {
+        match = window.UniversalMatcher.matchWorkdayAutomationId(automationId, currentProfile);
+      }
+
+      // 2. Fallback to general semantic matcher if no direct Workday automation ID match
+      if (!match) {
+        match = window.UniversalMatcher.matchField(el, currentProfile, mode);
+      }
+
       if (match && match.value !== undefined && match.value !== null && match.value !== "") {
         const tagName = el.tagName.toLowerCase();
         const type = (el.type || '').toLowerCase();
