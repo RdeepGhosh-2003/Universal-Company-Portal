@@ -119,7 +119,8 @@ Universal Company Portal/
 - **Seamless Auto-Auth Pipeline**: Executes immediately prior to form submission during account registration and login sequences.
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
-- **Direct Automation ID Mapping**: Links profile JSON directly to Workday internal automation IDs (`legalNameSection_firstName`, `addressSection_addressLine1`, `phone-number`, `email`, etc.) on the "My Information" step.
+- **Direct Automation ID Mapping**: Links profile JSON directly to Workday internal automation IDs (`legalNameSection_firstName`, `addressSection_addressLine1`, `phone-device-type`, `phone-number`, `email`, etc.).
+- **Workday Custom Dropdown Handler**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `div[role="combobox"]`) on "Application Questions" and "Voluntary Disclosures" steps.
 - **React-Safe State Setter**: Uses native prototype setters (`HTMLInputElement.prototype.value.set`) and dispatches `input`, `change`, and `blur` events so React/SPA state updates cleanly without validation errors.
 
 ---

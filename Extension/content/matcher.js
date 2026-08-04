@@ -268,6 +268,7 @@ window.UniversalMatcher = (function() {
     { ids: ['addresssection_countryregion', 'state', 'province'], path: 'personal.state' },
     { ids: ['addresssection_postalcode', 'postalcode', 'zipcode', 'zip'], path: 'personal.zipCode' },
     { ids: ['addresssection_country', 'country'], path: 'personal.country' },
+    { ids: ['phone-device-type', 'devicetype', 'phonetype'], path: 'personal.phoneType' },
     { ids: ['phone-number', 'contactinformationpage_phonenumber', 'phonenumber', 'phone'], path: 'personal.phone' },
     { ids: ['email', 'contactinformationpage_email', 'emailaddress'], path: 'credentials.email' },
     { ids: ['linkedin', 'website', 'portfolio'], path: 'personal.linkedin' },

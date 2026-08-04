@@ -2,6 +2,19 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.16.0] - 2026-08-04
+
+### 🏢 Workday Custom Dropdown Handler & Expanded Automation Dictionary
+- **Expanded Workday Dictionary (`content/matcher.js`)**:
+  - Updated `WORKDAY_AUTOMATION_MAP` with `legalNameSection_firstName`, `legalNameSection_lastName`, `addressSection_addressLine1`, `addressSection_city`, `addressSection_countryRegion`, `phone-device-type`, and `phone-number`.
+- **Workday Custom Dropdown Handler (`content/content_script.js`)**:
+  - Implemented `handleWorkdayDropdown(questionText, answerToSelect)` for React select widgets (`[data-automation-id="selectWidget"]`, `div[role="combobox"]`, `button[aria-haspopup="listbox"]`).
+  - Uses XPath label targeting, clicks dropdown trigger, waits 300ms for React DOM listbox rendering, and clicks the matching option (`li[role="option"]`, `div[role="option"]`).
+- **Dynamic Q&A Matching for Custom Widgets (`content/content_script.js`)**:
+  - Automatically matches visible custom dropdown widgets on "Application Questions" and "Voluntary Disclosures" steps against the candidate's saved `ScreeningQA` bank in `chrome.storage.local`.
+
+---
+
 ## [1.14.1] - 2026-08-04
 
 ### 🛠️ Hotfix: Ghost Click Fix & 500ms React State Delay

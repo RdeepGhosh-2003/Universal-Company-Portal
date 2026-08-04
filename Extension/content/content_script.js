@@ -193,11 +193,100 @@
       }
     });
 
+    // 3. Workday Custom Dropdowns & Select Widgets (Application Questions & Voluntary Disclosures)
+    if (currentProfile?.screening && Array.isArray(currentProfile.screening)) {
+      const customDropdowns = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
+
+      customDropdowns.forEach(widget => {
+        if (!isElementVisible(widget)) return;
+        const labelText = window.UniversalMatcher.getElementLabelText(widget);
+        if (!labelText) return;
+
+        currentProfile.screening.forEach(item => {
+          if (!item.keywords || !item.answer) return;
+          const keywords = item.keywords.toLowerCase().split(',').map(k => k.trim());
+          const isMatched = keywords.some(kw => kw && labelText.includes(kw));
+
+          if (isMatched) {
+            const success = handleWorkdayDropdown(labelText, item.answer);
+            if (success) filledCount++;
+          }
+        });
+      });
+    }
+
     if (filledCount > 0) {
       showToast(`Auto-filled ${filledCount} field${filledCount > 1 ? 's' : ''} successfully!`, "success");
     } else {
       showToast(`No new fields matched for auto-fill on this page.`, "info");
     }
+  }
+
+  /**
+   * Workday Custom Dropdown Handler (React Select Widgets)
+   * Navigates Workday custom dropdowns for Application Questions & Voluntary Disclosures
+   */
+  function handleWorkdayDropdown(questionText, answerToSelect) {
+    if (!questionText || !answerToSelect) return false;
+    const cleanQuestion = questionText.toLowerCase().trim();
+    const cleanAnswer = answerToSelect.toString().toLowerCase().trim();
+
+    // Step A: Locate the question label / legend using XPath
+    let dropdownTrigger = null;
+
+    try {
+      const xpathQuery = `//*[self::label or self::legend or self::span or self::div][contains(translate(normalize-space(text()), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "${cleanQuestion.replace(/"/g, '')}")]`;
+      const xpathResult = document.evaluate(xpathQuery, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
+      for (let i = 0; i < xpathResult.snapshotLength; i++) {
+        const labelNode = xpathResult.snapshotItem(i);
+        if (!isElementVisible(labelNode)) continue;
+
+        // Step B: Find closest sibling or child button representing the dropdown
+        const container = labelNode.closest('.form-group, fieldset, div[data-automation-id*="formField"], div[class*="FormField"], form > div, div');
+        if (container) {
+          dropdownTrigger = container.querySelector('[data-automation-id="selectWidget"], [data-automation-id*="prompt"], div[role="combobox"], button[aria-haspopup="listbox"], button[aria-haspopup="menu"], [data-automation-id="activeMenuButton"]');
+          if (dropdownTrigger && isElementVisible(dropdownTrigger)) break;
+        }
+      }
+    } catch (e) {}
+
+    // Fallback: If no direct trigger found via label XPath, scan visible select widgets on page directly
+    if (!dropdownTrigger) {
+      const widgets = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
+      dropdownTrigger = widgets.find(w => {
+        if (!isElementVisible(w)) return false;
+        const text = window.UniversalMatcher.getElementLabelText(w);
+        return text.includes(cleanQuestion);
+      });
+    }
+
+    if (!dropdownTrigger) return false;
+
+    // Step B (Execution): Execute a .click() on the dropdown trigger element
+    dropdownTrigger.click();
+
+    // Step C: Wrap the next step in a setTimeout of 300ms to allow React DOM to render the dropdown listbox
+    setTimeout(() => {
+      // Step D: Query the newly rendered listbox
+      const optionElements = Array.from(document.querySelectorAll('ul[role="listbox"] li, div[role="listbox"] div[role="option"], [data-automation-id="selectWidget-list"] li, div[data-automation-id*="promptOption"], li[role="option"], div[role="option"]'));
+
+      if (optionElements.length === 0) return;
+
+      // Step E: Find an item whose text matches answerToSelect
+      const matchedOption = optionElements.find(opt => {
+        const optText = (opt.textContent || opt.getAttribute('aria-label') || '').toLowerCase().trim();
+        return optText === cleanAnswer || optText.includes(cleanAnswer) || cleanAnswer.includes(optText);
+      });
+
+      if (matchedOption) {
+        matchedOption.click();
+        highlightField(dropdownTrigger);
+        showToast(`📝 Workday Dropdown: Selected "${matchedOption.textContent.trim()}"`, "success");
+      }
+    }, 300);
+
+    return true;
   }
 
   // Learn-as-You-Go Scanner Engine
