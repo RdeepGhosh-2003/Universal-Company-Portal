@@ -2,6 +2,23 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.1] - 2026-08-05
+
+### 🏛️ Barclays Customized Workday Instance Support
+- **Expanded Barclays Strict Dictionary (`content/matcher.js`)**:
+  - Updated `WORKDAY_AUTOMATION_MAP` with Barclays specific `id`, `name`, and `data-fkit-id` attributes:
+    - `address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"` ➔ `personalDetails.addressLine1`
+    - `address--addressLine2Local`, `addressLine2Local`, `data-fkit-id="address--addressLine2Local"` ➔ `personalDetails.addressLine2` (fallback `""`)
+    - `address--addressLine3Local`, `addressLine3Local`, `data-fkit-id="address--addressLine3Local"` ➔ `personalDetails.addressLine3` (fallback `""`)
+    - `address--cityLocal`, `cityLocal`, `data-fkit-id="address--cityLocal"` ➔ `personalDetails.city`
+    - `address--postalCodeLocal`, `postalCodeLocal`, `data-fkit-id="address--postalCodeLocal"` ➔ `personalDetails.postalCode`
+    - Includes non-local variants (`address--addressLine1`, `addressLine1`, `data-fkit-id="address--addressLine1"`, etc.).
+  - Upgraded `matchWorkdayAutomationId` to evaluate HTML element `id`, `name`, `data-automation-id`, and `data-fkit-id` attributes seamlessly.
+- **Maintained Core Protections**:
+  - React Dropdown Handler (`handleWorkdayDropdown`) and Fuzzy Matcher Global Kill-Switch (`blacklist`) remain 100% active to prevent shotgunning.
+
+---
+
 ## [1.17.0] - 2026-08-05
 
 ### 🌐 Workday Localized ID Mapping, Fuzzy Kill-Switch & React Dropdown Handler

@@ -158,13 +158,8 @@
     const inputs = document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]), select, textarea');
 
     inputs.forEach(el => {
-      // 1. Direct Workday data-automation-id matching (Strict 1:1)
-      const automationId = el.getAttribute('data-automation-id');
-      let match = null;
-
-      if (automationId) {
-        match = window.UniversalMatcher.matchWorkdayAutomationId(automationId, currentProfile);
-      }
+      // 1. Direct Workday & Barclays internal selector matching (Strict 1:1)
+      let match = window.UniversalMatcher.matchWorkdayAutomationId(el, currentProfile);
 
       // 2. Fallback to general semantic matcher ONLY if not a core Workday automation ID field
       if (!match) {

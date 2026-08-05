@@ -295,22 +295,22 @@ window.UniversalMatcher = (function() {
     'legal statement', 'data processing', 'terms & conditions', 'policy'
   ];
 
-  // Strict 1:1 Workday data-automation-id mapping dictionary (Includes Native & Localized IDs)
+  // Strict 1:1 Workday & Barclays data-automation-id/id/name/data-fkit-id mapping dictionary
   const WORKDAY_AUTOMATION_MAP = [
-    // Legal Name Section (Native & Localized)
-    { ids: ['legalnamesection_firstnamelocal', 'legalnamesection_firstname', 'firstname', 'legalname_firstname'], path: 'personal.firstName', defaultVal: "" },
-    { ids: ['legalnamesection_middlenamelocal', 'legalnamesection_middlename', 'middlename', 'legalname_middlename'], path: 'personal.middleName', defaultVal: "" },
-    { ids: ['legalnamesection_lastnamelocal', 'legalnamesection_lastname', 'lastname', 'legalname_lastname'], path: 'personal.lastName', defaultVal: "" },
-    { ids: ['legalnamesection_fullnamelocal', 'legalnamesection_fullname', 'fullname'], path: 'personal.fullName', defaultVal: "" },
+    // Legal Name Section (Native, Barclays & Localized)
+    { ids: ['legalnamesection_firstnamelocal', 'legalnamesection_firstname', 'firstname', 'legalname_firstname', 'legalname--firstname', 'firstnamelocal'], path: 'personal.firstName', defaultVal: "" },
+    { ids: ['legalnamesection_middlenamelocal', 'legalnamesection_middlename', 'middlename', 'legalname_middlename', 'legalname--middlename', 'middlenamelocal'], path: 'personal.middleName', defaultVal: "" },
+    { ids: ['legalnamesection_lastnamelocal', 'legalnamesection_lastname', 'lastname', 'legalname_lastname', 'legalname--lastname', 'lastnamelocal'], path: 'personal.lastName', defaultVal: "" },
+    { ids: ['legalnamesection_fullnamelocal', 'legalnamesection_fullname', 'fullname', 'legalname--fullname', 'fullnamelocal'], path: 'personal.fullName', defaultVal: "" },
 
-    // Address Section (Native & Localized)
-    { ids: ['addresssection_addressline1local', 'addresssection_addressline1', 'addressline1', 'streetaddress'], path: 'personal.address', defaultVal: "" },
-    { ids: ['addresssection_addressline2local', 'addresssection_addressline2', 'addressline2'], path: 'personal.addressLine2', defaultVal: "" },
-    { ids: ['addresssection_addressline3local', 'addresssection_addressline3', 'addressline3'], path: 'personal.addressLine3', defaultVal: "" },
-    { ids: ['addresssection_citylocal', 'addresssection_city', 'city'], path: 'personal.city', defaultVal: "" },
-    { ids: ['addresssection_countryregionlocal', 'addresssection_countryregion', 'state', 'province'], path: 'personal.state', defaultVal: "" },
-    { ids: ['addresssection_postalcodelocal', 'addresssection_postalcode', 'postalcode', 'zipcode', 'zip'], path: 'personal.zipCode', defaultVal: "" },
-    { ids: ['addresssection_countrylocal', 'addresssection_country', 'country'], path: 'personal.country', defaultVal: "" },
+    // Address Section (Native, Barclays fkit-id / id / name & Localized)
+    { ids: ['address--addressline1local', 'addressline1local', 'addresssection_addressline1local', 'address--addressline1', 'addresssection_addressline1', 'addressline1', 'streetaddress'], path: 'personal.address', defaultVal: "" },
+    { ids: ['address--addressline2local', 'addressline2local', 'addresssection_addressline2local', 'address--addressline2', 'addresssection_addressline2', 'addressline2'], path: 'personal.addressLine2', defaultVal: "" },
+    { ids: ['address--addressline3local', 'addressline3local', 'addresssection_addressline3local', 'address--addressline3', 'addresssection_addressline3', 'addressline3'], path: 'personal.addressLine3', defaultVal: "" },
+    { ids: ['address--citylocal', 'citylocal', 'addresssection_citylocal', 'address--city', 'addresssection_city', 'city'], path: 'personal.city', defaultVal: "" },
+    { ids: ['address--countryregionlocal', 'countryregionlocal', 'addresssection_countryregionlocal', 'address--countryregion', 'addresssection_countryregion', 'state', 'province'], path: 'personal.state', defaultVal: "" },
+    { ids: ['address--postalcodelocal', 'postalcodelocal', 'addresssection_postalcodelocal', 'address--postalcode', 'addresssection_postalcode', 'postalcode', 'zipcode', 'zip'], path: 'personal.zipCode', defaultVal: "" },
+    { ids: ['address--countrylocal', 'countrylocal', 'addresssection_countrylocal', 'address--country', 'addresssection_country', 'country'], path: 'personal.country', defaultVal: "" },
 
     // Phone & Contact Section
     { ids: ['phone-device-type', 'devicetype', 'phonetype'], path: 'personal.phoneType', defaultVal: "Mobile" },
@@ -324,15 +324,27 @@ window.UniversalMatcher = (function() {
   ];
 
   /**
-   * Directly matches Workday internal data-automation-id attributes to profile data.
-   * Enforces strict 1:1 mapping and prevents fallback artifacting for addressLine2/3 and middleName.
+   * Directly matches Workday & Barclays internal attributes (data-automation-id, id, name, data-fkit-id) to profile data.
+   * Accepts either an HTML Element or a string attribute value.
    */
-  function matchWorkdayAutomationId(automationId, profile) {
-    if (!automationId || !profile) return null;
-    const cleanId = automationId.toLowerCase().trim();
+  function matchWorkdayAutomationId(elOrId, profile) {
+    if (!elOrId || !profile) return null;
+
+    let targetStr = "";
+    if (typeof elOrId === 'string') {
+      targetStr = elOrId.toLowerCase().trim();
+    } else if (elOrId instanceof Element) {
+      const id = elOrId.id || '';
+      const name = elOrId.getAttribute('name') || '';
+      const autoId = elOrId.getAttribute('data-automation-id') || '';
+      const fkitId = elOrId.getAttribute('data-fkit-id') || '';
+      targetStr = `${id} ${name} ${autoId} ${fkitId}`.toLowerCase().trim();
+    }
+
+    if (!targetStr) return null;
 
     for (const item of WORKDAY_AUTOMATION_MAP) {
-      if (item.ids.some(id => cleanId.includes(id))) {
+      if (item.ids.some(key => targetStr.includes(key.toLowerCase()))) {
         const val = getNestedValue(profile, item.path);
         // Explicitly return string value or defaultVal ("") rather than falling back to invalid properties
         const finalValue = (val !== null && val !== undefined) ? String(val) : (item.defaultVal !== undefined ? item.defaultVal : "");

@@ -119,7 +119,7 @@ Universal Company Portal/
 - **Seamless Auto-Auth Pipeline**: Executes immediately prior to form submission during account registration and login sequences.
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
-- **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard and localized Workday automation IDs (`addressSection_addressLine1Local`, `legalNameSection_firstNameLocal`, `addressSection_cityLocal`, etc.).
+- **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard, localized, and Barclays customized Workday automation IDs (`address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"`, `legalNameSection_firstNameLocal`, etc.).
 - **Fuzzy Matcher Global Kill-Switch**: Hard aborts generic screening Q&A fuzzy matching if element attributes or labels contain `['address', 'city', 'postal', 'zip', 'name', 'phone', 'local']`.
 - **Workday Custom Dropdown Handler**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `[aria-haspopup="listbox"]`) via native click events, 400ms React rendering delays, and `[data-automation-id="promptOption"]` selection.
 - **React-Safe State Setter**: Uses native prototype setters (`HTMLInputElement.prototype.value.set`) and dispatches `input`, `change`, and `blur` events so React/SPA state updates cleanly without validation errors.
