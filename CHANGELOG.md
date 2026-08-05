@@ -2,6 +2,19 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.0] - 2026-08-05
+
+### 🌐 Workday Localized ID Mapping, Fuzzy Kill-Switch & React Dropdown Handler
+- **Workday Localized ID 1:1 Mapping (`content/matcher.js`)**:
+  - Added exact 1:1 mappings for localized Workday automation IDs: `addressSection_addressLine1Local`, `addressSection_addressLine2Local`, `addressSection_addressLine3Local`, `addressSection_cityLocal`, `addressSection_postalCodeLocal`, `legalNameSection_firstNameLocal`, `legalNameSection_lastNameLocal`, `legalNameSection_middleNameLocal`.
+  - Expanded `getNestedValue` to support dual root resolution for `personalDetails` and `personal` object keys.
+- **Fuzzy Matcher Global Kill-Switch (`content/matcher.js`)**:
+  - Implemented a hard abort validation in generic Q&A fuzzy-matcher loop. If element `id`, `name`, `data-automation-id`, or associated `<label>` contains `['address', 'city', 'postal', 'zip', 'name', 'phone', 'local']`, generic fuzzy Q&A matching immediately aborts and returns `null`.
+- **React Dropdown Interaction Handling (`content/content_script.js`)**:
+  - Upgraded `handleWorkdayDropdown` to accept DOM elements or string queries, dispatch native MouseEvent clicks on widget triggers, wait 400ms for React listbox DOM rendering, query `[data-automation-id="promptOption"]` / `li[role="option"]`, and dispatch native click events on target options (e.g. `"Mr"`).
+
+---
+
 ## [1.16.1] - 2026-08-04
 
 ### 🛠️ Hotfix: "Shotgun Effect" Isolation & Strict 1:1 Workday Field Mapping

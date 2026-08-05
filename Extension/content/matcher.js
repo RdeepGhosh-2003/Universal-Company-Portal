@@ -97,6 +97,7 @@ window.UniversalMatcher = (function() {
 
   /**
    * Helper to safely extract nested value from object path (e.g. 'work.currentRole.jobTitle')
+   * Supports fallback root resolution for personalDetails vs personal
    */
   function getNestedValue(obj, path) {
     if (!obj || !path) return null;
@@ -108,10 +109,35 @@ window.UniversalMatcher = (function() {
     const keys = path.split('.');
     let current = obj;
     for (const key of keys) {
-      if (current === undefined || current === null) return null;
+      if (current === undefined || current === null) break;
       current = current[key];
     }
-    return current;
+    if (current !== undefined && current !== null && current !== "") return current;
+
+    // Root fallback resolution (personalDetails vs personal)
+    if (path.startsWith('personal.')) {
+      const prop = path.split('.')[1];
+      const pd = obj.personalDetails || {};
+      const altPropMap = {
+        'address': pd.addressLine1 || pd.address,
+        'addressLine2': pd.addressLine2,
+        'addressLine3': pd.addressLine3,
+        'zipCode': pd.postalCode || pd.zipCode || pd.zip,
+        'city': pd.city,
+        'state': pd.state || pd.province || pd.countryRegion,
+        'country': pd.country,
+        'firstName': pd.firstName,
+        'lastName': pd.lastName,
+        'middleName': pd.middleName,
+        'fullName': pd.fullName,
+        'phone': pd.phone || pd.phoneNumber,
+        'phoneType': pd.phoneType || pd.phoneDeviceType
+      };
+      const altVal = altPropMap[prop];
+      if (altVal !== undefined && altVal !== null && altVal !== "") return altVal;
+    }
+
+    return null;
   }
 
   /**
@@ -119,68 +145,67 @@ window.UniversalMatcher = (function() {
    */
   function isSearchInput(el) {
     if (!el) return false;
-
-    // Search inputs on search engines or navbar search bars
     const type = (el.type || '').toLowerCase();
-    if (type === 'search') return true;
-
+    const role = (el.getAttribute('role') || '').toLowerCase();
     const id = (el.id || '').toLowerCase();
     const name = (el.name || '').toLowerCase();
+    const placeholder = (el.placeholder || '').toLowerCase();
+    const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
 
-    if (id.includes('search') || name.includes('search') || name === 'q' || name === 'l') {
-      // Check if it's inside an actual job application form modal
-      const isForm = el.closest('form, div[role="dialog"], modal, .ia-FormGroup, .application-form');
-      if (!isForm) return true;
-    }
+    if (type === 'search' || role === 'searchbox') return true;
 
-    return false;
+    const searchKeywords = ['search', 'find', 'query', 'filter'];
+    return searchKeywords.some(kw => id.includes(kw) || name.includes(kw) || placeholder.includes(kw) || ariaLabel.includes(kw));
   }
 
   /**
-   * Aggregate all label text, placeholders, aria attributes, names & IDs associated with element
+   * Helper to extract associated label or contextual header text for an input element
    */
   function getElementLabelText(el) {
-    let labelTexts = [];
+    if (!el) return "";
 
-    // 1. HTML5 <label for="id">
+    const labelTexts = [];
+
+    // 1. Explicit <label for="id">
     if (el.id) {
       try {
-        const labelEl = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
-        if (labelEl) labelTexts.push(labelEl.textContent);
-      } catch(e) {}
+        const label = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+        if (label) labelTexts.push(label.textContent);
+      } catch (e) {}
     }
 
-    // 2. Direct parent <label>
+    // 2. Parent <label> element
     const parentLabel = el.closest('label');
-    if (parentLabel) {
-      labelTexts.push(parentLabel.textContent);
-    }
+    if (parentLabel) labelTexts.push(parentLabel.textContent);
 
-    // 3. aria-labelledby target text
+    // 3. aria-label or aria-labelledby
+    const ariaLabel = el.getAttribute('aria-label');
+    if (ariaLabel) labelTexts.push(ariaLabel);
+
     const ariaLabelledBy = el.getAttribute('aria-labelledby');
     if (ariaLabelledBy) {
-      ariaLabelledBy.split(' ').forEach(id => {
-        const target = document.getElementById(id);
-        if (target) labelTexts.push(target.textContent);
+      const ids = ariaLabelledBy.split(' ');
+      ids.forEach(id => {
+        try {
+          const lbl = document.getElementById(id);
+          if (lbl) labelTexts.push(lbl.textContent);
+        } catch (e) {}
       });
     }
 
-    // 4. Attributes: autocomplete, aria-label, placeholder, name, id, data-testid, data-automation-id, title
-    if (el.getAttribute('autocomplete')) labelTexts.push(el.getAttribute('autocomplete'));
-    if (el.getAttribute('aria-label')) labelTexts.push(el.getAttribute('aria-label'));
-    if (el.getAttribute('data-testid')) labelTexts.push(el.getAttribute('data-testid'));
-    if (el.getAttribute('data-automation-id')) labelTexts.push(el.getAttribute('data-automation-id'));
+    // 4. placeholder or title or name attribute or data-automation-id
     if (el.placeholder) labelTexts.push(el.placeholder);
-    if (el.name) labelTexts.push(el.name);
-    if (el.id) labelTexts.push(el.id);
     if (el.title) labelTexts.push(el.title);
+    if (el.name) labelTexts.push(el.name);
+    const autoId = el.getAttribute('data-automation-id');
+    if (autoId) labelTexts.push(autoId);
 
-    // 5. Parent container heading / label / subtext
-    const container = el.closest('.form-group, .field, .form-item, fieldset, form > div, div[class*="Form"], div[class*="input"], div[class*="field"]');
+    // 5. Contextual header/label inside closest fieldset, form-group, or wrapper
+    const container = el.closest('.form-group, fieldset, div[class*="field"], div[class*="Form"], div[class*="group"], tr, td');
     if (container) {
       const header = container.querySelector('label, h1, h2, h3, h4, legend, [class*="label"], [class*="title"], [class*="header"]');
       if (header) labelTexts.push(header.textContent);
-      
+
       const subtext = container.querySelector('p, small, span, div, [class*="desc"], [class*="help"], [class*="subtext"]');
       if (subtext) labelTexts.push(subtext.textContent);
     }
@@ -197,6 +222,9 @@ window.UniversalMatcher = (function() {
 
     const labelText = getElementLabelText(el);
     const type = (el.type || '').toLowerCase();
+    const id = (el.id || '').toLowerCase();
+    const name = (el.name || '').toLowerCase();
+    const automationId = (el.getAttribute('data-automation-id') || '').toLowerCase();
 
     // Mode: CREDENTIALS (Only fill Email & Password for portal login / signup)
     if (mode === "CREDENTIALS") {
@@ -237,8 +265,17 @@ window.UniversalMatcher = (function() {
       }
     }
 
+    // FUZZY MATCHER GLOBAL KILL-SWITCH BLACKLIST
+    const blacklist = ['address', 'city', 'postal', 'zip', 'name', 'phone', 'local'];
+    const combinedAttributeStr = `${id} ${name} ${automationId} ${labelText}`.toLowerCase();
+
     // Check screening Q&A bank
     if (profile.screening && Array.isArray(profile.screening)) {
+      // Hard abort validation if any blacklisted keyword is found in element attributes or label
+      if (blacklist.some(word => combinedAttributeStr.includes(word))) {
+        return null;
+      }
+
       for (const item of profile.screening) {
         const keywords = item.keywords.toLowerCase().split(',').map(k => k.trim());
         for (const kw of keywords) {
@@ -258,22 +295,22 @@ window.UniversalMatcher = (function() {
     'legal statement', 'data processing', 'terms & conditions', 'policy'
   ];
 
-  // Strict 1:1 Workday data-automation-id mapping dictionary
+  // Strict 1:1 Workday data-automation-id mapping dictionary (Includes Native & Localized IDs)
   const WORKDAY_AUTOMATION_MAP = [
-    // Legal Name Section
-    { ids: ['legalnamesection_firstname', 'firstname', 'legalname_firstname'], path: 'personal.firstName', defaultVal: "" },
-    { ids: ['legalnamesection_middlename', 'middlename', 'legalname_middlename'], path: 'personal.middleName', defaultVal: "" },
-    { ids: ['legalnamesection_lastname', 'lastname', 'legalname_lastname'], path: 'personal.lastName', defaultVal: "" },
-    { ids: ['legalnamesection_fullname', 'fullname'], path: 'personal.fullName', defaultVal: "" },
+    // Legal Name Section (Native & Localized)
+    { ids: ['legalnamesection_firstnamelocal', 'legalnamesection_firstname', 'firstname', 'legalname_firstname'], path: 'personal.firstName', defaultVal: "" },
+    { ids: ['legalnamesection_middlenamelocal', 'legalnamesection_middlename', 'middlename', 'legalname_middlename'], path: 'personal.middleName', defaultVal: "" },
+    { ids: ['legalnamesection_lastnamelocal', 'legalnamesection_lastname', 'lastname', 'legalname_lastname'], path: 'personal.lastName', defaultVal: "" },
+    { ids: ['legalnamesection_fullnamelocal', 'legalnamesection_fullname', 'fullname'], path: 'personal.fullName', defaultVal: "" },
 
-    // Address Section
-    { ids: ['addresssection_addressline1', 'addressline1', 'streetaddress'], path: 'personal.address', defaultVal: "" },
-    { ids: ['addresssection_addressline2', 'addressline2'], path: 'personal.addressLine2', defaultVal: "" },
-    { ids: ['addresssection_addressline3', 'addressline3'], path: 'personal.addressLine3', defaultVal: "" },
-    { ids: ['addresssection_city', 'city'], path: 'personal.city', defaultVal: "" },
-    { ids: ['addresssection_countryregion', 'state', 'province'], path: 'personal.state', defaultVal: "" },
-    { ids: ['addresssection_postalcode', 'postalcode', 'zipcode', 'zip'], path: 'personal.zipCode', defaultVal: "" },
-    { ids: ['addresssection_country', 'country'], path: 'personal.country', defaultVal: "" },
+    // Address Section (Native & Localized)
+    { ids: ['addresssection_addressline1local', 'addresssection_addressline1', 'addressline1', 'streetaddress'], path: 'personal.address', defaultVal: "" },
+    { ids: ['addresssection_addressline2local', 'addresssection_addressline2', 'addressline2'], path: 'personal.addressLine2', defaultVal: "" },
+    { ids: ['addresssection_addressline3local', 'addresssection_addressline3', 'addressline3'], path: 'personal.addressLine3', defaultVal: "" },
+    { ids: ['addresssection_citylocal', 'addresssection_city', 'city'], path: 'personal.city', defaultVal: "" },
+    { ids: ['addresssection_countryregionlocal', 'addresssection_countryregion', 'state', 'province'], path: 'personal.state', defaultVal: "" },
+    { ids: ['addresssection_postalcodelocal', 'addresssection_postalcode', 'postalcode', 'zipcode', 'zip'], path: 'personal.zipCode', defaultVal: "" },
+    { ids: ['addresssection_countrylocal', 'addresssection_country', 'country'], path: 'personal.country', defaultVal: "" },
 
     // Phone & Contact Section
     { ids: ['phone-device-type', 'devicetype', 'phonetype'], path: 'personal.phoneType', defaultVal: "Mobile" },

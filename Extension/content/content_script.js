@@ -239,67 +239,86 @@
 
   /**
    * Workday Custom Dropdown Handler (React Select Widgets)
-   * Navigates Workday custom dropdowns for Application Questions & Voluntary Disclosures
+   * Dispatches native click events to open Workday prompt listboxes and select target options
    */
-  function handleWorkdayDropdown(questionText, answerToSelect) {
-    if (!questionText || !answerToSelect) return false;
-    const cleanQuestion = questionText.toLowerCase().trim();
+  function handleWorkdayDropdown(targetWidgetOrText, answerToSelect) {
+    if (!targetWidgetOrText || !answerToSelect) return false;
+
+    let dropdownTrigger = null;
     const cleanAnswer = answerToSelect.toString().toLowerCase().trim();
 
-    // Step A: Locate the question label / legend using XPath
-    let dropdownTrigger = null;
+    if (targetWidgetOrText instanceof Element) {
+      dropdownTrigger = targetWidgetOrText;
+    } else if (typeof targetWidgetOrText === 'string') {
+      const cleanQuestion = targetWidgetOrText.toLowerCase().trim();
 
-    try {
-      const xpathQuery = `//*[self::label or self::legend or self::span or self::div][contains(translate(normalize-space(text()), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "${cleanQuestion.replace(/"/g, '')}")]`;
-      const xpathResult = document.evaluate(xpathQuery, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+      // Step A: Locate the question label / legend using XPath
+      try {
+        const xpathQuery = `//*[self::label or self::legend or self::span or self::div][contains(translate(normalize-space(text()), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "${cleanQuestion.replace(/"/g, '')}")]`;
+        const xpathResult = document.evaluate(xpathQuery, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
-      for (let i = 0; i < xpathResult.snapshotLength; i++) {
-        const labelNode = xpathResult.snapshotItem(i);
-        if (!isElementVisible(labelNode)) continue;
+        for (let i = 0; i < xpathResult.snapshotLength; i++) {
+          const labelNode = xpathResult.snapshotItem(i);
+          if (!isElementVisible(labelNode)) continue;
 
-        // Step B: Find closest sibling or child button representing the dropdown
-        const container = labelNode.closest('.form-group, fieldset, div[data-automation-id*="formField"], div[class*="FormField"], form > div, div');
-        if (container) {
-          dropdownTrigger = container.querySelector('[data-automation-id="selectWidget"], [data-automation-id*="prompt"], div[role="combobox"], button[aria-haspopup="listbox"], button[aria-haspopup="menu"], [data-automation-id="activeMenuButton"]');
-          if (dropdownTrigger && isElementVisible(dropdownTrigger)) break;
+          // Step B: Find closest sibling or child button representing the dropdown
+          const container = labelNode.closest('.form-group, fieldset, div[data-automation-id*="formField"], div[class*="FormField"], form > div, div');
+          if (container) {
+            dropdownTrigger = container.querySelector('[data-automation-id="selectWidget"], [data-automation-id*="prompt"], div[role="combobox"], button[aria-haspopup="listbox"], button[aria-haspopup="menu"], [data-automation-id="activeMenuButton"]');
+            if (dropdownTrigger && isElementVisible(dropdownTrigger)) break;
+          }
         }
-      }
-    } catch (e) {}
+      } catch (e) {}
 
-    // Fallback: If no direct trigger found via label XPath, scan visible select widgets on page directly
-    if (!dropdownTrigger) {
-      const widgets = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
-      dropdownTrigger = widgets.find(w => {
-        if (!isElementVisible(w)) return false;
-        const text = window.UniversalMatcher.getElementLabelText(w);
-        return text.includes(cleanQuestion);
-      });
+      // Fallback: If no direct trigger found via label XPath, scan visible select widgets on page directly
+      if (!dropdownTrigger) {
+        const widgets = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
+        dropdownTrigger = widgets.find(w => {
+          if (!isElementVisible(w)) return false;
+          const text = window.UniversalMatcher.getElementLabelText(w);
+          return text.includes(cleanQuestion);
+        });
+      }
     }
 
     if (!dropdownTrigger) return false;
 
-    // Step B (Execution): Execute a .click() on the dropdown trigger element
+    // Action Step 1: Dispatch native click event on widget trigger to open menu
     dropdownTrigger.click();
+    try {
+      dropdownTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    } catch (e) {}
 
-    // Step C: Wrap the next step in a setTimeout of 300ms to allow React DOM to render the dropdown listbox
+    // Action Step 2: 400ms setTimeout to allow React to render DOM listbox
     setTimeout(() => {
-      // Step D: Query the newly rendered listbox
-      const optionElements = Array.from(document.querySelectorAll('ul[role="listbox"] li, div[role="listbox"] div[role="option"], [data-automation-id="selectWidget-list"] li, div[data-automation-id*="promptOption"], li[role="option"], div[role="option"]'));
+      // Action Step 3: Query document for rendered dropdown options ([data-automation-id="promptOption"], li[role="option"], etc.)
+      const optionElements = Array.from(document.querySelectorAll(
+        '[data-automation-id="promptOption"], ' +
+        'div[data-automation-id*="promptOption"], ' +
+        'ul[role="listbox"] li, ' +
+        'div[role="listbox"] div[role="option"], ' +
+        '[data-automation-id="selectWidget-list"] li, ' +
+        'li[role="option"], ' +
+        'div[role="option"]'
+      ));
 
       if (optionElements.length === 0) return;
 
-      // Step E: Find an item whose text matches answerToSelect
+      // Action Step 4: Iterate options, find match for target text (e.g. "Mr"), and dispatch click event on option
       const matchedOption = optionElements.find(opt => {
-        const optText = (opt.textContent || opt.getAttribute('aria-label') || '').toLowerCase().trim();
+        const optText = (opt.textContent || opt.getAttribute('aria-label') || opt.getAttribute('data-automation-label') || '').toLowerCase().trim();
         return optText === cleanAnswer || optText.includes(cleanAnswer) || cleanAnswer.includes(optText);
       });
 
       if (matchedOption) {
         matchedOption.click();
+        try {
+          matchedOption.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        } catch (e) {}
         highlightField(dropdownTrigger);
         showToast(`📝 Workday Dropdown: Selected "${matchedOption.textContent.trim()}"`, "success");
       }
-    }, 300);
+    }, 400);
 
     return true;
   }

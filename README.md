@@ -119,9 +119,9 @@ Universal Company Portal/
 - **Seamless Auto-Auth Pipeline**: Executes immediately prior to form submission during account registration and login sequences.
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
-- **Direct Automation ID Mapping**: Links profile JSON directly to Workday internal automation IDs (`legalNameSection_firstName`, `addressSection_addressLine1`, `phone-device-type`, `phone-number`, `email`, etc.).
-- **Shotgun Effect Isolation**: Isolates predefined Workday core fields from fuzzy screening Q&A matcher to guarantee strict 1:1 mapping and prevent addressLine2/middleName artifacting.
-- **Workday Custom Dropdown Handler**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `div[role="combobox"]`) on "Application Questions" and "Voluntary Disclosures" steps.
+- **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard and localized Workday automation IDs (`addressSection_addressLine1Local`, `legalNameSection_firstNameLocal`, `addressSection_cityLocal`, etc.).
+- **Fuzzy Matcher Global Kill-Switch**: Hard aborts generic screening Q&A fuzzy matching if element attributes or labels contain `['address', 'city', 'postal', 'zip', 'name', 'phone', 'local']`.
+- **Workday Custom Dropdown Handler**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `[aria-haspopup="listbox"]`) via native click events, 400ms React rendering delays, and `[data-automation-id="promptOption"]` selection.
 - **React-Safe State Setter**: Uses native prototype setters (`HTMLInputElement.prototype.value.set`) and dispatches `input`, `change`, and `blur` events so React/SPA state updates cleanly without validation errors.
 
 ---
