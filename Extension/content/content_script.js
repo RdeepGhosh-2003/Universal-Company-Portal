@@ -37,8 +37,8 @@
     });
   }
 
-  // Helper: Dispatch events to make React / Angular / Vue framework forms accept filled values
-  function setNativeValue(element, value) {
+  // Requirement R1: React State Injection Helper
+  function injectReactValue(element, value) {
     const valueSetter = Object.getOwnPropertyDescriptor(element, 'value')?.set;
     const prototype = Object.getPrototypeOf(element);
     const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
@@ -53,6 +53,11 @@
 
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  // Helper: Dispatch events to make React / Angular / Vue framework forms accept filled values
+  function setNativeValue(element, value) {
+    injectReactValue(element, value);
     element.dispatchEvent(new Event('blur', { bubbles: true }));
   }
 
@@ -169,7 +174,7 @@
       if (match && match.value !== undefined && match.value !== null) {
         // If it's a Workday Core field with an empty string (""), inject empty string and skip Q&A matching
         if (match.isWorkdayCore && match.value === "") {
-          setNativeValue(el, "");
+          injectReactValue(el, "");
           return;
         }
 
@@ -184,7 +189,12 @@
           } else if (type === 'radio' || type === 'checkbox') {
             filledSuccess = setRadioOrCheckbox(el, match.value);
           } else {
-            setNativeValue(el, match.value);
+            const automationId = (el.getAttribute('data-automation-id') || '').toLowerCase();
+            if (automationId === 'email' || automationId === 'password' || match.isWorkdayCore) {
+              injectReactValue(el, match.value);
+            } else {
+              setNativeValue(el, match.value);
+            }
             filledSuccess = true;
           }
 
@@ -518,10 +528,10 @@
     // 1. Broadened Workday / SPA query selectors
     const signInBtn = document.querySelector(
       '[data-automation-id="signInSubmitButton"], ' +
+      '[data-automation-id="signInButton"], ' +
       'button[aria-label="Sign In"], ' +
       'div[data-automation-id="click_filter"], ' +
       '[data-automation-id="click_sub"], ' +
-      '[data-automation-id="signInButton"], ' +
       '[data-automation-id="loginSubmitButton"]'
     );
     if (signInBtn && isElementVisible(signInBtn)) return signInBtn;

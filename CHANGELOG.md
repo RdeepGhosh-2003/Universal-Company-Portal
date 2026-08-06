@@ -2,6 +2,19 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.2] - 2026-08-06
+
+### ⚛️ Workday React State Bypass Login Injection
+- **React State Bypass Function (`content/content_script.js`)**:
+  - Implemented `injectReactValue(element, value)` helper to invoke `Object.getPrototypeOf(element)` prototype value setters directly.
+  - Dispatches native `input` and `change` events so Workday's React virtual DOM registers injected credentials without keeping the submit button disabled.
+- **Updated Field Injection**:
+  - Directs Workday `[data-automation-id="email"]` and `[data-automation-id="password"]` fields through `injectReactValue`.
+- **Targeted Modal Sign-In Button**:
+  - Enforces 500ms post-injection delay and targets `[data-automation-id="signInSubmitButton"]` and `[data-automation-id="signInButton"]`.
+
+---
+
 ## [1.17.1] - 2026-08-05
 
 ### 🏛️ Barclays Customized Workday Instance Support
