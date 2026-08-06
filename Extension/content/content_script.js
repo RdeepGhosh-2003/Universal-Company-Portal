@@ -425,10 +425,20 @@
 
     // 500ms React State Delay: Guarantees Workday React virtual DOM has fully registered injected values
     setTimeout(() => {
-      const loginBtn = findLoginSubmitButton();
+      // 1. Prioritize the invisible shield overlay (Workday z-index: 3 click interceptor)
+      const shieldBtn = document.querySelector('[data-automation-id="click_filter"]');
+
+      // 2. Fallback to the real button if the shield is missing
+      const realBtn = document.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="signInButton"]');
+
+      const loginBtn = shieldBtn || realBtn || findLoginSubmitButton();
+
       if (loginBtn) {
         showToast(`🔑 Signing into ${hostname}...`, "success");
         loginBtn.click();
+        try {
+          loginBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        } catch (e) {}
       } else {
         showToast(`⚠️ Filled credentials, but could not locate Sign In submit button.`, "info");
       }
@@ -525,12 +535,14 @@
 
   // Find Login Submit Button with Workday Selectors & XPath Fallback
   function findLoginSubmitButton() {
-    // 1. Broadened Workday / SPA query selectors
+    // 1. Prioritize click_filter shield overlay, then real button selectors
+    const shieldBtn = document.querySelector('[data-automation-id="click_filter"]');
+    if (shieldBtn && isElementVisible(shieldBtn)) return shieldBtn;
+
     const signInBtn = document.querySelector(
       '[data-automation-id="signInSubmitButton"], ' +
       '[data-automation-id="signInButton"], ' +
       'button[aria-label="Sign In"], ' +
-      'div[data-automation-id="click_filter"], ' +
       '[data-automation-id="click_sub"], ' +
       '[data-automation-id="loginSubmitButton"]'
     );

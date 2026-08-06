@@ -2,6 +2,15 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.3] - 2026-08-06
+
+### 🛡️ Workday Modal Click Interceptor Shield Bypass
+- **Target Invisible Click Shield Overlay (`content/content_script.js`)**:
+  - Updated `executeLoginFlow` and `findLoginSubmitButton` to prioritize Workday's absolute `z-index: 3` overlay `<div data-automation-id="click_filter" role="button"></div>`.
+  - Implemented fallback clicking logic: checks `[data-automation-id="click_filter"]` first, then falls back to `[data-automation-id="signInSubmitButton"]` / `[data-automation-id="signInButton"]`.
+
+---
+
 ## [1.17.2] - 2026-08-06
 
 ### ⚛️ Workday React State Bypass Login Injection
