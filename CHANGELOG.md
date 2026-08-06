@@ -2,6 +2,17 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.4] - 2026-08-06
+
+### 🤖 Bot Evasion & Human Interaction Lifecycle Simulation
+- **Enhanced `injectReactValue` (`content/content_script.js`)**:
+  - Simulates complete human interaction lifecycle: `focus()` ➔ prototype setter ➔ `keydown`/`keyup` events ➔ `input`/`change` events ➔ `blur()`.
+  - Evades Workday `noCaptchaWrapper` bot detection to prevent the spawning of invisible `z-index: 3` click interceptor shields (`click_filter`).
+- **Sequential Credential Delays (`content/content_script.js`)**:
+  - Refactored `executeLoginFlow` to inject email, wait **200ms**, inject password, wait **500ms**, then target the real submit button (`[data-automation-id="signInSubmitButton"]`).
+
+---
+
 ## [1.17.3] - 2026-08-06
 
 ### 🛡️ Workday Modal Click Interceptor Shield Bypass

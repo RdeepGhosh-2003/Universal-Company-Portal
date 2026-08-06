@@ -37,8 +37,14 @@
     });
   }
 
-  // Requirement R1: React State Injection Helper
+  // Requirement R1: React State Injection Helper with Human Interaction Simulation (Bot Evasion)
   function injectReactValue(element, value) {
+    if (!element) return;
+
+    // 1. Focus element
+    element.focus();
+
+    // 2. Prototype value setter invocation
     const valueSetter = Object.getOwnPropertyDescriptor(element, 'value')?.set;
     const prototype = Object.getPrototypeOf(element);
     const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
@@ -51,14 +57,23 @@
       element.value = value;
     }
 
+    // 3. Dispatch KeyboardEvent ('keydown' and 'keyup')
+    try {
+      element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'a' }));
+      element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: 'a' }));
+    } catch (e) {}
+
+    // 4. Dispatch Input and Change events
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
+
+    // 5. Blur element
+    element.blur();
   }
 
   // Helper: Dispatch events to make React / Angular / Vue framework forms accept filled values
   function setNativeValue(element, value) {
     injectReactValue(element, value);
-    element.dispatchEvent(new Event('blur', { bubbles: true }));
   }
 
   // Handle Dropdown (<select>) elements
@@ -419,30 +434,56 @@
   }
 
   function executeLoginFlow(hostname) {
-    executeFill("CREDENTIALS");
-    executeConsentAutoCheck();
     showToast(`🔑 Recognized Auth Form on ${hostname}! Auto-signing in...`, "success");
 
-    // 500ms React State Delay: Guarantees Workday React virtual DOM has fully registered injected values
+    // 1. Locate Email and Password fields
+    const emailInput = document.querySelector('[data-automation-id="email"], input[type="email"]') ||
+                       Array.from(document.querySelectorAll('input:not([type="hidden"])')).find(el => {
+                         const txt = window.UniversalMatcher.getElementLabelText(el);
+                         return txt.includes('email') || txt.includes('username');
+                       });
+
+    const passInput = document.querySelector('[data-automation-id="password"], input[type="password"]');
+
+    const emailVal = currentProfile?.credentials?.email || currentProfile?.personal?.email;
+    const passVal = currentProfile?.credentials?.password;
+
+    // Sequential Step A: Inject Email field
+    if (emailInput && emailVal) {
+      injectReactValue(emailInput, emailVal);
+      highlightField(emailInput);
+    }
+
+    // Sequential Step B: Wait 200ms, then inject Password field
     setTimeout(() => {
-      // 1. Prioritize the invisible shield overlay (Workday z-index: 3 click interceptor)
-      const shieldBtn = document.querySelector('[data-automation-id="click_filter"]');
-
-      // 2. Fallback to the real button if the shield is missing
-      const realBtn = document.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="signInButton"]');
-
-      const loginBtn = shieldBtn || realBtn || findLoginSubmitButton();
-
-      if (loginBtn) {
-        showToast(`🔑 Signing into ${hostname}...`, "success");
-        loginBtn.click();
-        try {
-          loginBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-        } catch (e) {}
-      } else {
-        showToast(`⚠️ Filled credentials, but could not locate Sign In submit button.`, "info");
+      if (passInput && passVal) {
+        injectReactValue(passInput, passVal);
+        highlightField(passInput);
       }
-    }, 500);
+
+      executeConsentAutoCheck();
+
+      // Sequential Step C: Wait 500ms, then target real submit button (or fallback shield / findLoginSubmitButton)
+      setTimeout(() => {
+        // 1. Target real submit button first (human simulation evades shield trigger)
+        const realBtn = document.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="signInButton"]');
+
+        // 2. Fallback to click_filter shield overlay if present
+        const shieldBtn = document.querySelector('[data-automation-id="click_filter"]');
+
+        const loginBtn = realBtn || shieldBtn || findLoginSubmitButton();
+
+        if (loginBtn) {
+          showToast(`🔑 Signing into ${hostname}...`, "success");
+          loginBtn.click();
+          try {
+            loginBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+          } catch (e) {}
+        } else {
+          showToast(`⚠️ Filled credentials, but could not locate Sign In submit button.`, "info");
+        }
+      }, 500);
+    }, 200);
   }
 
   function executeSignUpFlow(hostname) {
@@ -535,10 +576,7 @@
 
   // Find Login Submit Button with Workday Selectors & XPath Fallback
   function findLoginSubmitButton() {
-    // 1. Prioritize click_filter shield overlay, then real button selectors
-    const shieldBtn = document.querySelector('[data-automation-id="click_filter"]');
-    if (shieldBtn && isElementVisible(shieldBtn)) return shieldBtn;
-
+    // 1. Prioritize real button selectors (human simulation evades shield trigger), then shield overlay
     const signInBtn = document.querySelector(
       '[data-automation-id="signInSubmitButton"], ' +
       '[data-automation-id="signInButton"], ' +
@@ -547,6 +585,9 @@
       '[data-automation-id="loginSubmitButton"]'
     );
     if (signInBtn && isElementVisible(signInBtn)) return signInBtn;
+
+    const shieldBtn = document.querySelector('[data-automation-id="click_filter"]');
+    if (shieldBtn && isElementVisible(shieldBtn)) return shieldBtn;
 
     // 2. Query visible candidate buttons by keyword
     const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a.btn, [role="button"], div[role="button"]'));

@@ -122,7 +122,7 @@ Universal Company Portal/
 - **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard, localized, and Barclays customized Workday automation IDs (`address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"`, `legalNameSection_firstNameLocal`, etc.).
 - **Fuzzy Matcher Global Kill-Switch**: Hard aborts generic screening Q&A fuzzy matching if element attributes or labels contain `['address', 'city', 'postal', 'zip', 'name', 'phone', 'local']`.
 - **Workday Custom Dropdown Handler**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `[aria-haspopup="listbox"]`) via native click events, 400ms React rendering delays, and `[data-automation-id="promptOption"]` selection.
-- **Click Interceptor Shield Target**: Targets Workday's `z-index: 3` overlay `<div data-automation-id="click_filter"></div>` first with fallback to `[data-automation-id="signInSubmitButton"]`.
+- **Bot Evasion & Human Simulation**: Simulates `focus()`, prototype setter, `keydown`/`keyup`, `input`/`change`, and `blur()` lifecycle events with sequential delays (200ms email ➔ password ➔ 500ms submit) to evade Workday's `noCaptchaWrapper` bot detection.
 - **React-Safe State Setter**: Uses `injectReactValue` prototype setters (`Object.getPrototypeOf(element)`) and dispatches `input` and `change` events so Workday's React state updates cleanly without leaving sign-in buttons disabled.
 
 ---
