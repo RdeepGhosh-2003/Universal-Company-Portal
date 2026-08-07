@@ -2,6 +2,17 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.10] - 2026-08-07
+
+### 🧹 Force-Close & Verify State Cleanser (SPA Option Merging Prevention)
+- **`forceCloseMenus()` Helper (`content/content_script.js`)**:
+  - Implemented an `async` state cleanser that dispatches `document.body.click()`, fires `Escape` key events on `document.activeElement` and `document`, and polls every 50ms for up to 1000ms until listbox elements are verified absent from the DOM.
+- **Cleanser Integration in `handleWorkdayDropdown` (`content/content_script.js`)**:
+  - Executes `await forceCloseMenus()` immediately prior to opening a new dropdown widget and immediately after selecting an option.
+  - Guarantees Workday's global recycled listbox DOM node is fully cleared, preventing option merging (e.g. Country & Prefix items combining) across sequential dropdown interactions.
+
+---
+
 ## [1.17.9] - 2026-08-07
 
 ### ⏱️ Strict Sequential Execution & React Listbox Menu Lifecycle Delays

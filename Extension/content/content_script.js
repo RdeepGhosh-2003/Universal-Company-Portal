@@ -362,9 +362,36 @@
   }
 
   /**
+   * Global State Cleanser: Force-Close Menus & Verify Listbox Removal
+   * Dispatches body click & Escape keys, then polls until listboxes are removed from DOM.
+   */
+  async function forceCloseMenus() {
+    // 1. Dispatch generic click on body to trigger "click outside" listeners
+    try {
+      document.body.click();
+      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    } catch (e) {}
+
+    // 2. Dispatch Escape key KeyboardEvent on activeElement and document
+    try {
+      const escEvent = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Escape', code: 'Escape', keyCode: 27 });
+      if (document.activeElement) document.activeElement.dispatchEvent(escEvent);
+      document.dispatchEvent(escEvent);
+    } catch (e) {}
+
+    // 3. Polling loop: check every 50ms for up to 1000ms until listboxes disappear from DOM
+    const startTime = Date.now();
+    while (Date.now() - startTime < 1000) {
+      const openMenu = document.querySelector('[role="listbox"], [data-automation-id*="list"], div[data-automation-id*="selectWidget-list"]');
+      if (!openMenu) break;
+      await new Promise(r => setTimeout(r, 50));
+    }
+  }
+
+  /**
    * Workday Custom Dropdown Handler (React Select Widgets)
    * Dispatches native click events to open Workday prompt listboxes and select target options with diacritic normalization.
-   * Strictly async with 600ms render delay and 300ms menu close delay to prevent DOM listbox node recycling race conditions.
+   * Strictly async with forceCloseMenus state cleanser to prevent DOM listbox node recycling option merging.
    */
   async function handleWorkdayDropdown(targetWidgetOrText, answerToSelect) {
     if (!targetWidgetOrText || !answerToSelect) return false;
@@ -408,6 +435,9 @@
 
     if (!dropdownTrigger) return false;
 
+    // Cleanser Step 1: Force-close any existing open menus before triggering new dropdown
+    await forceCloseMenus();
+
     // Action Step 1: Dispatch native click event on widget trigger to open menu
     dropdownTrigger.click();
     try {
@@ -445,11 +475,13 @@
       highlightField(dropdownTrigger);
       showToast(`📝 Workday Dropdown: Selected "${matchedOption.textContent.trim()}"`, "success");
 
-      // Action Step 5: 300ms await to allow menu closing animation to finish and React state to settle
-      await new Promise(r => setTimeout(r, 300));
+      // Cleanser Step 2: Force-close and verify listbox removal after selecting option
+      await forceCloseMenus();
       return true;
     }
 
+    // Fallback Cleanser if option not matched
+    await forceCloseMenus();
     return false;
   }
 
