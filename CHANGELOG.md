@@ -2,6 +2,19 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.6] - 2026-08-07
+
+### 🔤 Workday Custom Dropdowns, Diacritic Normalization & Radio Wrapper Targeting
+- **Diacritic Normalization (`content/content_script.js` & `content/matcher.js`)**:
+  - Implemented `normalizeText(str)` utilizing `.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()`.
+  - Applied diacritic normalization across `setSelectValue` and `handleWorkdayDropdown` to match standard profile strings (e.g. `"Karnataka"`) against Workday's diacritic option texts (e.g. `"Karnātaka"`).
+- **Custom React Dropdown Handler (`content/content_script.js`)**:
+  - Upgraded `handleWorkdayDropdown(element, targetText)` to open custom Workday `<div>` select widgets, wait 400ms for listbox DOM rendering, and click matching normalized options.
+- **Radio & Checkbox Visual Wrapper Targeting (`content/content_script.js`)**:
+  - Refactored `setRadioOrCheckbox` to locate the element's `<label>`, `div[role="radio"]`, `div[role="checkbox"]`, or parent wrapper and dispatch native `.click()` and `MouseEvent('click')` events to visual wrappers.
+
+---
+
 ## [1.17.5] - 2026-08-07
 
 ### 🌐 Globalized Stealth React Injection for Form Text Inputs

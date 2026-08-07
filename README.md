@@ -121,7 +121,8 @@ Universal Company Portal/
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
 - **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard, localized, and Barclays customized Workday automation IDs (`address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"`, `legalNameSection_firstNameLocal`, etc.).
 - **Fuzzy Matcher Global Kill-Switch**: Hard aborts generic screening Q&A fuzzy matching if element attributes or labels contain `['address', 'city', 'postal', 'zip', 'name', 'phone', 'local']`.
-- **Workday Custom Dropdown Handler**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `[aria-haspopup="listbox"]`) via native click events, 400ms React rendering delays, and `[data-automation-id="promptOption"]` selection.
+- **Workday Custom Dropdown Handler & Diacritic Normalization**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `[aria-haspopup="listbox"]`) via native click events, 400ms React rendering delays, and diacritic normalization (`.normalize("NFD").replace(/[\u0300-\u036f]/g, "")`) matching (e.g. `"Karnataka"` ➔ `"Karnātaka"`).
+- **Radio & Checkbox Visual Wrapper Targeting**: Targets visual `<label>`, `div[role="radio"]`, `div[role="checkbox"]`, or parent wrappers to trigger clicks on Workday custom radio/checkbox components.
 - **Bot Evasion & Human Simulation**: Simulates `focus()`, prototype setter, `keydown`/`keyup`, `input`/`change`, and `blur()` lifecycle events with sequential delays (200ms email ➔ password ➔ 500ms submit) to evade Workday's `noCaptchaWrapper` bot detection.
 - **Globalized Stealth React Injection**: Applies `injectReactValue` human-mimicry injection to all main application form text inputs (`<input type="text">`, `email`, `tel`, `url`, `number`, `password`, `<textarea>`), eliminating Workday "required field" virtual DOM state validation errors on "Save and Continue".
 

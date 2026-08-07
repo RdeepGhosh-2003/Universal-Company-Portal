@@ -379,6 +379,10 @@ window.UniversalMatcher = (function() {
     getElementLabelText,
     isSearchInput,
     isConsentCheckbox,
+    normalizeText: function(str) {
+      if (!str) return "";
+      return str.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    },
     injectReactValue: function(el, val) {
       if (window.injectReactValue) {
         window.injectReactValue(el, val);

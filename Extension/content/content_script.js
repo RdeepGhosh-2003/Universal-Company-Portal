@@ -82,22 +82,33 @@
     injectReactValue(element, value);
   }
 
-  // Handle Dropdown (<select>) elements
+  // Helper: Diacritic & String Normalization
+  function normalizeText(str) {
+    if (!str) return "";
+    return str
+      .toString()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  // Handle Dropdown (<select>) elements with Diacritic Normalization
   function setSelectValue(selectEl, targetValue) {
     const options = Array.from(selectEl.options);
-    const targetLower = String(targetValue).toLowerCase().trim();
+    const targetNorm = normalizeText(targetValue);
 
     // 1. Exact match on value or text
     let matchedOption = options.find(opt => 
-      opt.value.toLowerCase().trim() === targetLower || 
-      opt.text.toLowerCase().trim() === targetLower
+      normalizeText(opt.value) === targetNorm || 
+      normalizeText(opt.text) === targetNorm
     );
 
     // 2. Partial / Fuzzy match
     if (!matchedOption) {
       matchedOption = options.find(opt => 
-        opt.text.toLowerCase().includes(targetLower) || 
-        targetLower.includes(opt.text.toLowerCase().trim())
+        normalizeText(opt.text).includes(targetNorm) || 
+        targetNorm.includes(normalizeText(opt.text))
       );
     }
 
@@ -111,21 +122,46 @@
     return false;
   }
 
-  // Handle Radio & Checkbox elements
+  // Handle Radio & Checkbox elements with visual wrapper / label targeting
   function setRadioOrCheckbox(inputEl, targetValue) {
-    const targetLower = String(targetValue).toLowerCase().trim();
-    const isYes = targetLower === 'yes' || targetLower === 'true' || targetLower === 'immediate';
-    const isNo = targetLower === 'no' || targetLower === 'false';
+    if (!inputEl) return false;
 
-    const labelText = window.UniversalMatcher.getElementLabelText(inputEl);
+    const targetNorm = normalizeText(targetValue);
+    const isYes = targetNorm === 'yes' || targetNorm === 'true' || targetNorm === 'immediate';
+    const isNo = targetNorm === 'no' || targetNorm === 'false';
 
-    if (isYes && (labelText.includes('yes') || inputEl.value.toLowerCase() === 'yes')) {
+    const labelText = normalizeText(window.UniversalMatcher.getElementLabelText(inputEl));
+    const inputValue = normalizeText(inputEl.value);
+
+    let isMatched = false;
+    if (isYes && (labelText.includes('yes') || inputValue === 'yes')) {
+      isMatched = true;
+    } else if (isNo && (labelText.includes('no') || inputValue === 'no')) {
+      isMatched = true;
+    } else if (targetNorm && (labelText.includes(targetNorm) || targetNorm.includes(labelText) || inputValue === targetNorm)) {
+      isMatched = true;
+    }
+
+    if (isMatched) {
       inputEl.checked = true;
       inputEl.dispatchEvent(new Event('change', { bubbles: true }));
-      return true;
-    } else if (isNo && (labelText.includes('no') || inputEl.value.toLowerCase() === 'no')) {
-      inputEl.checked = true;
-      inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Locate visual wrapper / label element for human-like click dispatching
+      const visualWrapper = (inputEl.labels && inputEl.labels[0]) ||
+                            (inputEl.id ? document.querySelector(`label[for="${CSS.escape(inputEl.id)}"]`) : null) ||
+                            inputEl.closest('label, div[role="radio"], div[role="checkbox"], [data-automation-id*="radio"], [data-automation-id*="checkbox"], fieldset div') ||
+                            inputEl.parentElement;
+
+      if (visualWrapper && isElementVisible(visualWrapper)) {
+        visualWrapper.click();
+        try {
+          visualWrapper.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        } catch (e) {}
+      } else {
+        inputEl.click();
+      }
+
       return true;
     }
 
@@ -223,34 +259,28 @@
       }
     });
 
-    // 3. Workday Custom Dropdowns & Select Widgets (Application Questions & Voluntary Disclosures)
-    if (currentProfile?.screening && Array.isArray(currentProfile.screening)) {
-      const customDropdowns = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
+    // 3. Scan Workday Custom Dropdowns (React Select Widgets that are NOT native <select> tags)
+    const customDropdowns = document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]');
+    customDropdowns.forEach(widget => {
+      if (!isElementVisible(widget)) return;
 
-      customDropdowns.forEach(widget => {
-        if (!isElementVisible(widget)) return;
-
-        // Skip Workday Core dropdowns (like countryRegion or phone-device-type) from screening Q&A fuzzy matching
-        const automationId = widget.getAttribute('data-automation-id');
-        if (automationId && window.UniversalMatcher.matchWorkdayAutomationId(automationId, currentProfile)) {
-          return;
-        }
-
+      let match = window.UniversalMatcher.matchWorkdayAutomationId(widget, currentProfile);
+      if (match && match.value) {
+        handleWorkdayDropdown(widget, match.value);
+        filledCount++;
+        highlightField(widget);
+      } else {
         const labelText = window.UniversalMatcher.getElementLabelText(widget);
-        if (!labelText) return;
-
-        currentProfile.screening.forEach(item => {
-          if (!item.keywords || !item.answer) return;
-          const keywords = item.keywords.toLowerCase().split(',').map(k => k.trim());
-          const isMatched = keywords.some(kw => kw && labelText.includes(kw));
-
-          if (isMatched) {
-            const success = handleWorkdayDropdown(labelText, item.answer);
-            if (success) filledCount++;
+        if (labelText) {
+          const matchField = window.UniversalMatcher.matchField(widget, currentProfile, mode);
+          if (matchField && matchField.value) {
+            handleWorkdayDropdown(widget, matchField.value);
+            filledCount++;
+            highlightField(widget);
           }
-        });
-      });
-    }
+        }
+      }
+    });
 
     if (filledCount > 0) {
       showToast(`Auto-filled ${filledCount} field${filledCount > 1 ? 's' : ''} successfully!`, "success");
@@ -261,22 +291,22 @@
 
   /**
    * Workday Custom Dropdown Handler (React Select Widgets)
-   * Dispatches native click events to open Workday prompt listboxes and select target options
+   * Dispatches native click events to open Workday prompt listboxes and select target options with diacritic normalization
    */
   function handleWorkdayDropdown(targetWidgetOrText, answerToSelect) {
     if (!targetWidgetOrText || !answerToSelect) return false;
 
     let dropdownTrigger = null;
-    const cleanAnswer = answerToSelect.toString().toLowerCase().trim();
+    const normAnswer = normalizeText(answerToSelect);
 
     if (targetWidgetOrText instanceof Element) {
       dropdownTrigger = targetWidgetOrText;
     } else if (typeof targetWidgetOrText === 'string') {
-      const cleanQuestion = targetWidgetOrText.toLowerCase().trim();
+      const normQuestion = normalizeText(targetWidgetOrText);
 
       // Step A: Locate the question label / legend using XPath
       try {
-        const xpathQuery = `//*[self::label or self::legend or self::span or self::div][contains(translate(normalize-space(text()), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "${cleanQuestion.replace(/"/g, '')}")]`;
+        const xpathQuery = `//*[self::label or self::legend or self::span or self::div][contains(translate(normalize-space(text()), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "${normQuestion.replace(/"/g, '')}")]`;
         const xpathResult = document.evaluate(xpathQuery, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
         for (let i = 0; i < xpathResult.snapshotLength; i++) {
@@ -297,8 +327,8 @@
         const widgets = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
         dropdownTrigger = widgets.find(w => {
           if (!isElementVisible(w)) return false;
-          const text = window.UniversalMatcher.getElementLabelText(w);
-          return text.includes(cleanQuestion);
+          const text = normalizeText(window.UniversalMatcher.getElementLabelText(w));
+          return text.includes(normQuestion);
         });
       }
     }
@@ -326,10 +356,11 @@
 
       if (optionElements.length === 0) return;
 
-      // Action Step 4: Iterate options, find match for target text (e.g. "Mr"), and dispatch click event on option
+      // Action Step 4: Iterate options with diacritic normalization and click matching option
       const matchedOption = optionElements.find(opt => {
-        const optText = (opt.textContent || opt.getAttribute('aria-label') || opt.getAttribute('data-automation-label') || '').toLowerCase().trim();
-        return optText === cleanAnswer || optText.includes(cleanAnswer) || cleanAnswer.includes(optText);
+        const rawText = opt.textContent || opt.getAttribute('aria-label') || opt.getAttribute('data-automation-label') || '';
+        const normOptText = normalizeText(rawText);
+        return normOptText === normAnswer || normOptText.includes(normAnswer) || normAnswer.includes(normOptText);
       });
 
       if (matchedOption) {
