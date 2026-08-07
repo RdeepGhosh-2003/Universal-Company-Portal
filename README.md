@@ -123,7 +123,7 @@ Universal Company Portal/
 - **Fuzzy Matcher Global Kill-Switch**: Hard aborts generic screening Q&A fuzzy matching if element attributes or labels contain `['address', 'city', 'postal', 'zip', 'name', 'phone', 'local']`.
 - **Workday Custom Dropdown Handler & Diacritic Normalization**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `[aria-haspopup="listbox"]`) via native click events, 400ms React rendering delays, and diacritic normalization (`.normalize("NFD").replace(/[\u0300-\u036f]/g, "")`) matching (e.g. `"Karnataka"` ➔ `"Karnātaka"`).
 - **Radio & Checkbox Visual Wrapper Targeting**: Targets visual `<label>`, `div[role="radio"]`, `div[role="checkbox"]`, or parent wrappers to trigger clicks on Workday custom radio/checkbox components.
-- **Letter-by-Letter Human Typing Simulation**: Asynchronously types text character-by-character with 15ms–30ms randomized delays (`keydown`, `keypress`, `input`, `keyup`) to defeat Workday's aggressive React Virtual DOM state locks and eliminate false "required field" validation errors upon saving.
+- **Letter-by-Letter Human Typing Simulation & Hard-Patch**: Asynchronously types text character-by-character with pre-focus `.click()`, 15ms–30ms randomized delays (`keydown`, `keypress`, `input`, `keyup`), and a 150ms state-stick delay prior to `blur()` to defeat Workday's aggressive React Virtual DOM state locks and eliminate false "required field" validation errors upon saving.
 
 ---
 

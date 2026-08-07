@@ -2,6 +2,17 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.8] - 2026-08-07
+
+### 🛠️ Workday Given Name Hard-Patch & React Virtual DOM State-Stick Delays
+- **Upgraded `simulateHumanTyping` (`content/content_script.js`)**:
+  - Added `element.click()` immediately prior to `element.focus()` to resolve UI re-render conflicts on adjacent widgets (e.g. Given Name vs. Prefix dropdown).
+  - Added a **150ms post-typing delay** (`setTimeout`) after the final keystroke but before `element.blur()` and dispatching the final `change` event, ensuring Workday's Virtual DOM state sticks cleanly.
+- **Full Main Form Automation Synergy**:
+  - Combined `simulateHumanTyping` with custom React dropdown handling (`handleWorkdayDropdown` with diacritic normalization) and radio/checkbox visual wrapper targeting (`setRadioOrCheckbox`).
+
+---
+
 ## [1.17.7] - 2026-08-07
 
 ### ⌨️ Letter-by-Letter Human Typing Simulation

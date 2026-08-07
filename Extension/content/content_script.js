@@ -80,7 +80,10 @@
     if (!element) return;
     const strVal = String(text ?? "");
 
-    // 1. Focus element
+    // 1. Click element first then focus (resolves Given Name UI re-render conflict)
+    try {
+      element.click();
+    } catch (e) {}
     element.focus();
 
     const valueSetter = Object.getOwnPropertyDescriptor(element, 'value')?.set;
@@ -125,7 +128,10 @@
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    // 4. Final change event & blur
+    // 4. 150ms delay after final keystroke before blur/change to ensure state sticks
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    // 5. Final change event & blur
     element.dispatchEvent(new Event('change', { bubbles: true }));
     element.blur();
   }
