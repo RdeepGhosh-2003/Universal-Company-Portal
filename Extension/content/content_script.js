@@ -190,7 +190,7 @@
   }
 
   // Handle Radio & Checkbox elements with visual wrapper / label targeting
-  function setRadioOrCheckbox(inputEl, targetValue) {
+  async function setRadioOrCheckbox(inputEl, targetValue) {
     if (!inputEl) return false;
 
     const targetNorm = normalizeText(targetValue);
@@ -229,6 +229,7 @@
         inputEl.click();
       }
 
+      await new Promise(r => setTimeout(r, 100));
       return true;
     }
 
@@ -280,7 +281,7 @@
     }
   }
 
-   async function executeFill(mode) {
+  async function executeFill(mode) {
     let filledCount = 0;
 
     // Scan input, select, textarea elements
@@ -311,7 +312,7 @@
           if (tagName === 'select') {
             filledSuccess = setSelectValue(el, match.value);
           } else if (type === 'radio' || type === 'checkbox') {
-            filledSuccess = setRadioOrCheckbox(el, match.value);
+            filledSuccess = await setRadioOrCheckbox(el, match.value);
           } else {
             // Apply Letter-by-Letter human typing simulation to all text inputs and textareas
             await simulateHumanTyping(el, match.value);
@@ -327,27 +328,31 @@
     }
 
     // 3. Scan Workday Custom Dropdowns (React Select Widgets that are NOT native <select> tags)
-    const customDropdowns = document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]');
-    customDropdowns.forEach(widget => {
-      if (!isElementVisible(widget)) return;
+    const customDropdowns = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
+    for (const widget of customDropdowns) {
+      if (!isElementVisible(widget)) continue;
 
       let match = window.UniversalMatcher.matchWorkdayAutomationId(widget, currentProfile);
       if (match && match.value) {
-        handleWorkdayDropdown(widget, match.value);
-        filledCount++;
-        highlightField(widget);
+        const success = await handleWorkdayDropdown(widget, match.value);
+        if (success) {
+          filledCount++;
+          highlightField(widget);
+        }
       } else {
         const labelText = window.UniversalMatcher.getElementLabelText(widget);
         if (labelText) {
           const matchField = window.UniversalMatcher.matchField(widget, currentProfile, mode);
           if (matchField && matchField.value) {
-            handleWorkdayDropdown(widget, matchField.value);
-            filledCount++;
-            highlightField(widget);
+            const success = await handleWorkdayDropdown(widget, matchField.value);
+            if (success) {
+              filledCount++;
+              highlightField(widget);
+            }
           }
         }
       }
-    });
+    }
 
     if (filledCount > 0) {
       showToast(`Auto-filled ${filledCount} field${filledCount > 1 ? 's' : ''} successfully!`, "success");
@@ -358,9 +363,10 @@
 
   /**
    * Workday Custom Dropdown Handler (React Select Widgets)
-   * Dispatches native click events to open Workday prompt listboxes and select target options with diacritic normalization
+   * Dispatches native click events to open Workday prompt listboxes and select target options with diacritic normalization.
+   * Strictly async with 600ms render delay and 300ms menu close delay to prevent DOM listbox node recycling race conditions.
    */
-  function handleWorkdayDropdown(targetWidgetOrText, answerToSelect) {
+  async function handleWorkdayDropdown(targetWidgetOrText, answerToSelect) {
     if (!targetWidgetOrText || !answerToSelect) return false;
 
     let dropdownTrigger = null;
@@ -408,39 +414,43 @@
       dropdownTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
     } catch (e) {}
 
-    // Action Step 2: 400ms setTimeout to allow React to render DOM listbox
-    setTimeout(() => {
-      // Action Step 3: Query document for rendered dropdown options ([data-automation-id="promptOption"], li[role="option"], etc.)
-      const optionElements = Array.from(document.querySelectorAll(
-        '[data-automation-id="promptOption"], ' +
-        'div[data-automation-id*="promptOption"], ' +
-        'ul[role="listbox"] li, ' +
-        'div[role="listbox"] div[role="option"], ' +
-        '[data-automation-id="selectWidget-list"] li, ' +
-        'li[role="option"], ' +
-        'div[role="option"]'
-      ));
+    // Action Step 2: 600ms await to allow React to fully render and populate DOM listbox node
+    await new Promise(r => setTimeout(r, 600));
 
-      if (optionElements.length === 0) return;
+    // Action Step 3: Query document for rendered dropdown options ([data-automation-id="promptOption"], li[role="option"], etc.)
+    const optionElements = Array.from(document.querySelectorAll(
+      '[data-automation-id="promptOption"], ' +
+      'div[data-automation-id*="promptOption"], ' +
+      'ul[role="listbox"] li, ' +
+      'div[role="listbox"] div[role="option"], ' +
+      '[data-automation-id="selectWidget-list"] li, ' +
+      'li[role="option"], ' +
+      'div[role="option"]'
+    ));
 
-      // Action Step 4: Iterate options with diacritic normalization and click matching option
-      const matchedOption = optionElements.find(opt => {
-        const rawText = opt.textContent || opt.getAttribute('aria-label') || opt.getAttribute('data-automation-label') || '';
-        const normOptText = normalizeText(rawText);
-        return normOptText === normAnswer || normOptText.includes(normAnswer) || normAnswer.includes(normOptText);
-      });
+    if (optionElements.length === 0) return false;
 
-      if (matchedOption) {
-        matchedOption.click();
-        try {
-          matchedOption.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-        } catch (e) {}
-        highlightField(dropdownTrigger);
-        showToast(`📝 Workday Dropdown: Selected "${matchedOption.textContent.trim()}"`, "success");
-      }
-    }, 400);
+    // Action Step 4: Iterate options with diacritic normalization and click matching option
+    const matchedOption = optionElements.find(opt => {
+      const rawText = opt.textContent || opt.getAttribute('aria-label') || opt.getAttribute('data-automation-label') || '';
+      const normOptText = normalizeText(rawText);
+      return normOptText === normAnswer || normOptText.includes(normAnswer) || normAnswer.includes(normOptText);
+    });
 
-    return true;
+    if (matchedOption) {
+      matchedOption.click();
+      try {
+        matchedOption.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      } catch (e) {}
+      highlightField(dropdownTrigger);
+      showToast(`📝 Workday Dropdown: Selected "${matchedOption.textContent.trim()}"`, "success");
+
+      // Action Step 5: 300ms await to allow menu closing animation to finish and React state to settle
+      await new Promise(r => setTimeout(r, 300));
+      return true;
+    }
+
+    return false;
   }
 
   // Learn-as-You-Go Scanner Engine

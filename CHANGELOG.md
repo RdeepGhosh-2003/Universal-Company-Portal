@@ -2,6 +2,19 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.9] - 2026-08-07
+
+### ⏱️ Strict Sequential Execution & React Listbox Menu Lifecycle Delays
+- **Async Promise Handlers (`content/content_script.js`)**:
+  - Refactored `handleWorkdayDropdown` and `setRadioOrCheckbox` to be strictly `async` Promise-returning functions.
+- **Menu Lifecycle Delays (`content/content_script.js`)**:
+  - Added a **600ms render delay** after triggering a custom dropdown widget to allow Workday's recycled global DOM listbox node to fully render and populate options.
+  - Added a **300ms menu close delay** after clicking an option to allow the closing animation to complete and React Virtual DOM state to settle before resolving.
+- **Strict Sequential Loop Control (`content/content_script.js`)**:
+  - Enforced `for...of` loops across `inputs` and `customDropdowns` in `executeFill`, ensuring every single text, dropdown, and radio field is sequentially `await`ed before processing the next element.
+
+---
+
 ## [1.17.8] - 2026-08-07
 
 ### 🛠️ Workday Given Name Hard-Patch & React Virtual DOM State-Stick Delays
