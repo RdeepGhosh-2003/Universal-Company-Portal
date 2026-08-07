@@ -120,12 +120,12 @@ Universal Company Portal/
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
 - **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard, localized, and Barclays customized Workday automation IDs (`address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"`, `legalNameSection_firstNameLocal`, etc.).
-- **Fuzzy Matcher Global Kill-Switch**: Hard aborts generic screening Q&A fuzzy matching if element attributes or labels contain `['address', 'city', 'postal', 'zip', 'name', 'phone', 'local']`.
+- **Fuzzy Matcher Global Kill-Switch & Extension Exclusions**: Hard aborts generic screening Q&A fuzzy matching on sensitive attributes and explicitly excludes "extension" fields from primary phone mapping.
 - **Force-Close & Verify State Cleanser**: Dispatches body clicks, Escape key events, and 50ms polling verification (`forceCloseMenus()`) before and after dropdown selections to prevent Workday SPA listbox option merging.
-- **Workday Custom Dropdown Handler & Diacritic Normalization**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `[aria-haspopup="listbox"]`) via native click events, 600ms DOM listbox render delays, and diacritic normalization (`.normalize("NFD").replace(/[\u0300-\u036f]/g, "")`) matching (e.g. `"Karnataka"` ➔ `"Karnātaka"`).
+- **Searchable Combobox & Custom Dropdown Handler**: Types search text into combobox inputs, waits 800ms for option filtering, and explicitly clicks matching rendered `[role="option"]` / `[data-automation-id="promptOption"]` elements with diacritic normalization.
 - **Strict Sequential Await Execution**: Enforces `for...of` loops across all text, dropdown, and radio fields in `executeFill` to prevent React DOM listbox node recycling race conditions.
-- **Radio & Checkbox Visual Wrapper Targeting**: Targets visual `<label>`, `div[role="radio"]`, `div[role="checkbox"]`, or parent wrappers to trigger clicks on Workday custom radio/checkbox components.
-- **Letter-by-Letter Human Typing Simulation & Hard-Patch**: Asynchronously types text character-by-character with pre-focus `.click()`, 15ms–30ms randomized delays (`keydown`, `keypress`, `input`, `keyup`), and a 150ms state-stick delay prior to `blur()` to defeat Workday's aggressive React Virtual DOM state locks and eliminate false "required field" validation errors upon saving.
+- **Radio & Checkbox Label & Parent Fallback Targeting**: Extracts `inputEl.id` and clicks `label[for="id"]`, falling back to `inputEl.parentElement.click()` for custom radio button components.
+- **Letter-by-Letter Human Typing Simulation & React Mask Bypass**: Asynchronously types text character-by-character setting exact `strVal.substring(0, i + 1)` on each iteration to override React input masks and defeat Virtual DOM state locks.
 
 ---
 

@@ -2,6 +2,20 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.12] - 2026-08-08
+
+### 📱 React Mask Substring Injection, Combobox Option Click & Extension Exclusions
+- **Typing Bot vs. Input Masks (`content/content_script.js`)**:
+  - Refactored `simulateHumanTyping` to forcefully set the exact `strVal.substring(0, i + 1)` on each iteration using `HTMLInputElement.prototype.value` and `HTMLTextAreaElement.prototype.value` prototype setters. Prevents formatted fields (Phone Number) from being truncated when React input masks modify `element.value` mid-loop.
+- **Radio Button Label & Parent Element Fallback (`content/content_script.js`)**:
+  - Upgraded `setRadioOrCheckbox` to extract `inputEl.id` and click `label[for="id"]`, falling back to `inputEl.parentElement.click()` if no explicit label exists.
+- **Searchable Combobox Option Click Selection (`content/content_script.js`)**:
+  - Refactored `handleWorkdayDropdown` for combobox inputs to await typing and 800ms filter rendering, then explicitly click the matching rendered `[role="option"]` / `[data-automation-id="promptOption"]` element instead of sending Enter keys.
+- **Phone Extension Matcher Exclusions (`content/matcher.js`)**:
+  - Updated `FIELD_MAPPINGS` and `matchField` negative keyword exclusions to explicitly reject primary phone mapping on any field containing `"extension"` or `"ext"`, correctly directing extension fields to `personal.phoneExtension`.
+
+---
+
 ## [1.17.10] - 2026-08-07
 
 ### 🧹 Force-Close & Verify State Cleanser (SPA Option Merging Prevention)

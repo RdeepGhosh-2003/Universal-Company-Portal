@@ -75,6 +75,7 @@
    * Letter-by-Letter Human Typing Simulation
    * Asynchronously types text character-by-character with randomized 15-30ms delays
    * to force React Virtual DOM state managers to accept filled input values.
+   * Forcefully sets exact substring on each iteration using prototype setter to override React input masks.
    */
   async function simulateHumanTyping(element, text) {
     if (!element) return;
@@ -86,17 +87,19 @@
     } catch (e) {}
     element.focus();
 
-    const valueSetter = Object.getOwnPropertyDescriptor(element, 'value')?.set;
-    const prototype = Object.getPrototypeOf(element);
-    const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+    const inputProtoSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+    const textareaProtoSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
 
     const setVal = (v) => {
-      if (prototypeValueSetter && valueSetter !== prototypeValueSetter) {
-        prototypeValueSetter.call(element, v);
-      } else if (valueSetter) {
-        valueSetter.call(element, v);
+      const isTextarea = element.tagName.toLowerCase() === 'textarea';
+      const protoSetter = isTextarea ? textareaProtoSetter : inputProtoSetter;
+
+      if (protoSetter) {
+        protoSetter.call(element, v);
       } else {
-        element.value = v;
+        const valueSetter = Object.getOwnPropertyDescriptor(element, 'value')?.set;
+        if (valueSetter) valueSetter.call(element, v);
+        else element.value = v;
       }
     };
 
@@ -106,12 +109,11 @@
     element.dispatchEvent(new Event('change', { bubbles: true }));
 
     // 3. Iterate through string character by character with 15-30ms randomized delays
-    let currentVal = "";
     for (let i = 0; i < strVal.length; i++) {
       const char = strVal[i];
-      currentVal += char;
+      const currentStr = strVal.substring(0, i + 1);
 
-      setVal(currentVal);
+      setVal(currentStr);
 
       try {
         element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: char, charCode: char.charCodeAt(0) }));
@@ -189,7 +191,7 @@
     return false;
   }
 
-  // Handle Radio & Checkbox elements with visual wrapper / label targeting
+  // Handle Radio & Checkbox elements with label[for="id"] and parentElement fallback click targeting
   async function setRadioOrCheckbox(inputEl, targetValue) {
     if (!inputEl) return false;
 
@@ -214,16 +216,28 @@
       inputEl.dispatchEvent(new Event('change', { bubbles: true }));
       inputEl.dispatchEvent(new Event('input', { bubbles: true }));
 
-      // Locate visual wrapper / label element for human-like click dispatching
-      const visualWrapper = (inputEl.labels && inputEl.labels[0]) ||
-                            (inputEl.id ? document.querySelector(`label[for="${CSS.escape(inputEl.id)}"]`) : null) ||
-                            inputEl.closest('label, div[role="radio"], div[role="checkbox"], [data-automation-id*="radio"], [data-automation-id*="checkbox"], fieldset div') ||
-                            inputEl.parentElement;
+      let clickedElement = null;
 
-      if (visualWrapper && isElementVisible(visualWrapper)) {
-        visualWrapper.click();
+      // Extract id attribute and attempt label[for="id"] click
+      if (inputEl.id) {
         try {
-          visualWrapper.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+          clickedElement = document.querySelector(`label[for="${CSS.escape(inputEl.id)}"]`);
+        } catch (e) {}
+      }
+
+      if (!clickedElement && inputEl.labels && inputEl.labels[0]) {
+        clickedElement = inputEl.labels[0];
+      }
+
+      // Fallback to input.parentElement.click() if no label exists
+      if (!clickedElement && inputEl.parentElement) {
+        clickedElement = inputEl.parentElement;
+      }
+
+      if (clickedElement && isElementVisible(clickedElement)) {
+        clickedElement.click();
+        try {
+          clickedElement.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
         } catch (e) {}
       } else {
         inputEl.click();
@@ -328,7 +342,7 @@
     }
 
     // 3. Scan Workday Custom Dropdowns (React Select Widgets that are NOT native <select> tags)
-    const customDropdowns = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
+    const customDropdowns = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], input[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
     for (const widget of customDropdowns) {
       if (!isElementVisible(widget)) continue;
 
@@ -389,8 +403,8 @@
   }
 
   /**
-   * Workday Custom Dropdown Handler (React Select Widgets)
-   * Dispatches native click events to open Workday prompt listboxes and select target options with diacritic normalization.
+   * Workday Custom Dropdown Handler (React Select Widgets & Searchable Comboboxes)
+   * Dispatches native click events or types into combobox inputs, then explicitly clicks matching filtered [role="option"] elements.
    * Strictly async with forceCloseMenus state cleanser to prevent DOM listbox node recycling option merging.
    */
   async function handleWorkdayDropdown(targetWidgetOrText, answerToSelect) {
@@ -416,7 +430,7 @@
           // Step B: Find closest sibling or child button representing the dropdown
           const container = labelNode.closest('.form-group, fieldset, div[data-automation-id*="formField"], div[class*="FormField"], form > div, div');
           if (container) {
-            dropdownTrigger = container.querySelector('[data-automation-id="selectWidget"], [data-automation-id*="prompt"], div[role="combobox"], button[aria-haspopup="listbox"], button[aria-haspopup="menu"], [data-automation-id="activeMenuButton"]');
+            dropdownTrigger = container.querySelector('[data-automation-id="selectWidget"], [data-automation-id*="prompt"], div[role="combobox"], input[role="combobox"], button[aria-haspopup="listbox"], button[aria-haspopup="menu"], [data-automation-id="activeMenuButton"]');
             if (dropdownTrigger && isElementVisible(dropdownTrigger)) break;
           }
         }
@@ -424,7 +438,7 @@
 
       // Fallback: If no direct trigger found via label XPath, scan visible select widgets on page directly
       if (!dropdownTrigger) {
-        const widgets = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
+        const widgets = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], input[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
         dropdownTrigger = widgets.find(w => {
           if (!isElementVisible(w)) return false;
           const text = normalizeText(window.UniversalMatcher.getElementLabelText(w));
@@ -438,34 +452,50 @@
     // Cleanser Step 1: Force-close any existing open menus before triggering new dropdown
     await forceCloseMenus();
 
-    // Action Step 1: Dispatch native click event on widget trigger to open menu
-    dropdownTrigger.click();
-    try {
-      dropdownTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-    } catch (e) {}
+    // Check if dropdown trigger is a searchable combobox input or contains an input
+    const searchInput = (dropdownTrigger.tagName.toLowerCase() === 'input') ? dropdownTrigger : dropdownTrigger.querySelector('input');
 
-    // Action Step 2: 600ms await to allow React to fully render and populate DOM listbox node
-    await new Promise(r => setTimeout(r, 600));
+    if (searchInput) {
+      // Searchable Combobox Flow: Type search term via simulateHumanTyping then wait 800ms for options to filter
+      await simulateHumanTyping(searchInput, answerToSelect);
+      await new Promise(r => setTimeout(r, 800));
+    } else {
+      // Standard Select Widget Flow: Click trigger button and wait 600ms to open listbox
+      dropdownTrigger.click();
+      try {
+        dropdownTrigger.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      } catch (e) {}
+      await new Promise(r => setTimeout(r, 600));
+    }
 
-    // Action Step 3: Query document for rendered dropdown options ([data-automation-id="promptOption"], li[role="option"], etc.)
+    // Action Step 3: Query document for rendered dropdown options ([data-automation-id="promptOption"], [role="option"], etc.)
     const optionElements = Array.from(document.querySelectorAll(
       '[data-automation-id="promptOption"], ' +
       'div[data-automation-id*="promptOption"], ' +
       'ul[role="listbox"] li, ' +
       'div[role="listbox"] div[role="option"], ' +
+      '[role="option"], ' +
       '[data-automation-id="selectWidget-list"] li, ' +
       'li[role="option"], ' +
       'div[role="option"]'
     ));
 
-    if (optionElements.length === 0) return false;
+    if (optionElements.length === 0) {
+      await forceCloseMenus();
+      return false;
+    }
 
-    // Action Step 4: Iterate options with diacritic normalization and click matching option
-    const matchedOption = optionElements.find(opt => {
+    // Action Step 4: Match option using diacritic normalization
+    let matchedOption = optionElements.find(opt => {
       const rawText = opt.textContent || opt.getAttribute('aria-label') || opt.getAttribute('data-automation-label') || '';
       const normOptText = normalizeText(rawText);
       return normOptText === normAnswer || normOptText.includes(normAnswer) || normAnswer.includes(normOptText);
     });
+
+    // Fallback for filtered combobox: if exact text match not found but filtered list exists, pick the first visible option
+    if (!matchedOption && searchInput && optionElements.length > 0) {
+      matchedOption = optionElements.find(opt => isElementVisible(opt)) || optionElements[0];
+    }
 
     if (matchedOption) {
       matchedOption.click();

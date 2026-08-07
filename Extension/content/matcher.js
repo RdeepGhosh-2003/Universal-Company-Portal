@@ -17,6 +17,7 @@ window.UniversalMatcher = (function() {
     { keys: ['first name', 'given name', 'fname', 'forename'], path: 'personal.firstName' },
     { keys: ['last name', 'family name', 'surname', 'lname'], path: 'personal.lastName' },
     { keys: ['full name', 'candidate name', 'your name', 'applicant name', 'name'], path: 'personal.fullName' },
+    { keys: ['phone extension', 'extension'], path: 'personal.phoneExtension' },
     { keys: ['phone number', 'mobile number', 'contact number', 'phone', 'mobile', 'cell', 'telephone'], path: 'personal.phone' },
     { keys: ['street address', 'address line 1', 'address', 'residence address'], path: 'personal.address' },
     { keys: ['city', 'current city', 'town', 'location city'], path: 'personal.city' },
@@ -131,6 +132,7 @@ window.UniversalMatcher = (function() {
         'middleName': pd.middleName,
         'fullName': pd.fullName,
         'phone': pd.phone || pd.phoneNumber,
+        'phoneExtension': pd.phoneExtension || pd.extension,
         'phoneType': pd.phoneType || pd.phoneDeviceType
       };
       const altVal = altPropMap[prop];
@@ -255,6 +257,14 @@ window.UniversalMatcher = (function() {
 
     // Check direct dictionary mappings
     for (const mapping of FIELD_MAPPINGS) {
+      // Explicitly reject primary phone mapping if field label or attributes contain "extension"
+      if (mapping.path === 'personal.phone') {
+        const combinedCheck = `${labelText} ${id} ${name} ${automationId}`.toLowerCase();
+        if (combinedCheck.includes('extension') || combinedCheck.includes('phoneextension') || combinedCheck.includes(' ext') || combinedCheck.endsWith('ext')) {
+          continue;
+        }
+      }
+
       for (const key of mapping.keys) {
         if (labelText.includes(key)) {
           const val = getNestedValue(profile, mapping.path);
