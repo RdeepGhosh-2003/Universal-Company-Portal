@@ -123,7 +123,7 @@ Universal Company Portal/
 - **Fuzzy Matcher Global Kill-Switch**: Hard aborts generic screening Q&A fuzzy matching if element attributes or labels contain `['address', 'city', 'postal', 'zip', 'name', 'phone', 'local']`.
 - **Workday Custom Dropdown Handler**: Navigates React-based select widgets (`[data-automation-id="selectWidget"]`, `[aria-haspopup="listbox"]`) via native click events, 400ms React rendering delays, and `[data-automation-id="promptOption"]` selection.
 - **Bot Evasion & Human Simulation**: Simulates `focus()`, prototype setter, `keydown`/`keyup`, `input`/`change`, and `blur()` lifecycle events with sequential delays (200ms email ➔ password ➔ 500ms submit) to evade Workday's `noCaptchaWrapper` bot detection.
-- **React-Safe State Setter**: Uses `injectReactValue` prototype setters (`Object.getPrototypeOf(element)`) and dispatches `input` and `change` events so Workday's React state updates cleanly without leaving sign-in buttons disabled.
+- **Globalized Stealth React Injection**: Applies `injectReactValue` human-mimicry injection to all main application form text inputs (`<input type="text">`, `email`, `tel`, `url`, `number`, `password`, `<textarea>`), eliminating Workday "required field" virtual DOM state validation errors on "Save and Continue".
 
 ---
 

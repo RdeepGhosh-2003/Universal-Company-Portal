@@ -37,7 +37,7 @@
     });
   }
 
-  // Requirement R1: React State Injection Helper with Human Interaction Simulation (Bot Evasion)
+  // Requirement R1: React State Injection Helper with Human Interaction Simulation (Bot Evasion & Virtual DOM Sync)
   function injectReactValue(element, value) {
     if (!element) return;
 
@@ -69,6 +69,12 @@
 
     // 5. Blur element
     element.blur();
+  }
+
+  // Expose stealth injection helper globally on window and UniversalMatcher
+  window.injectReactValue = injectReactValue;
+  if (window.UniversalMatcher) {
+    window.UniversalMatcher.injectReactValue = injectReactValue;
   }
 
   // Helper: Dispatch events to make React / Angular / Vue framework forms accept filled values
@@ -204,12 +210,8 @@
           } else if (type === 'radio' || type === 'checkbox') {
             filledSuccess = setRadioOrCheckbox(el, match.value);
           } else {
-            const automationId = (el.getAttribute('data-automation-id') || '').toLowerCase();
-            if (automationId === 'email' || automationId === 'password' || match.isWorkdayCore) {
-              injectReactValue(el, match.value);
-            } else {
-              setNativeValue(el, match.value);
-            }
+            // Apply stealth human-mimicry injection to all text inputs and textareas
+            injectReactValue(el, match.value);
             filledSuccess = true;
           }
 

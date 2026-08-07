@@ -2,6 +2,19 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.5] - 2026-08-07
+
+### 🌐 Globalized Stealth React Injection for Form Text Inputs
+- **Globalized `injectReactValue` (`content/content_script.js` & `content/matcher.js`)**:
+  - Exposed `injectReactValue` globally on `window` and `window.UniversalMatcher` for cross-module accessibility.
+- **Refactored Core Text Input Filling (`content/content_script.js`)**:
+  - Updated `executeFill` and `executeSignUpFlow` to route all mapped text-based inputs (`<input type="text">`, `email`, `tel`, `url`, `number`, `password`, `<textarea>`) through `injectReactValue`.
+  - Resolves Workday virtual DOM "required field" state validation errors on Given Name, Surname, Address Lines, City, and Postal Code upon clicking "Save and Continue".
+- **Preserved Other Input Types**:
+  - Left `<select>` elements on `setSelectValue` / `handleWorkdayDropdown` and radio/checkbox inputs on dedicated selection handlers.
+
+---
+
 ## [1.17.4] - 2026-08-06
 
 ### 🤖 Bot Evasion & Human Interaction Lifecycle Simulation

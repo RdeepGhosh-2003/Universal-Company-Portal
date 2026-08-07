@@ -378,6 +378,11 @@ window.UniversalMatcher = (function() {
     matchWorkdayAutomationId,
     getElementLabelText,
     isSearchInput,
-    isConsentCheckbox
+    isConsentCheckbox,
+    injectReactValue: function(el, val) {
+      if (window.injectReactValue) {
+        window.injectReactValue(el, val);
+      }
+    }
   };
 })();
