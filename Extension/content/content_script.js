@@ -71,10 +71,71 @@
     element.blur();
   }
 
-  // Expose stealth injection helper globally on window and UniversalMatcher
+  /**
+   * Letter-by-Letter Human Typing Simulation
+   * Asynchronously types text character-by-character with randomized 15-30ms delays
+   * to force React Virtual DOM state managers to accept filled input values.
+   */
+  async function simulateHumanTyping(element, text) {
+    if (!element) return;
+    const strVal = String(text ?? "");
+
+    // 1. Focus element
+    element.focus();
+
+    const valueSetter = Object.getOwnPropertyDescriptor(element, 'value')?.set;
+    const prototype = Object.getPrototypeOf(element);
+    const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+
+    const setVal = (v) => {
+      if (prototypeValueSetter && valueSetter !== prototypeValueSetter) {
+        prototypeValueSetter.call(element, v);
+      } else if (valueSetter) {
+        valueSetter.call(element, v);
+      } else {
+        element.value = v;
+      }
+    };
+
+    // 2. Clear field completely & reset React state
+    setVal("");
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+
+    // 3. Iterate through string character by character with 15-30ms randomized delays
+    let currentVal = "";
+    for (let i = 0; i < strVal.length; i++) {
+      const char = strVal[i];
+      currentVal += char;
+
+      setVal(currentVal);
+
+      try {
+        element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: char, charCode: char.charCodeAt(0) }));
+        element.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, cancelable: true, key: char, charCode: char.charCodeAt(0) }));
+      } catch (e) {}
+
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+
+      try {
+        element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: char, charCode: char.charCodeAt(0) }));
+      } catch (e) {}
+
+      const delay = Math.floor(Math.random() * 16) + 15;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+    // 4. Final change event & blur
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+    element.blur();
+  }
+
+  // Expose stealth injection & human typing helpers globally on window and UniversalMatcher
   window.injectReactValue = injectReactValue;
+  window.simulateHumanTyping = simulateHumanTyping;
   if (window.UniversalMatcher) {
     window.UniversalMatcher.injectReactValue = injectReactValue;
+    window.UniversalMatcher.simulateHumanTyping = simulateHumanTyping;
   }
 
   // Helper: Dispatch events to make React / Angular / Vue framework forms accept filled values
@@ -213,13 +274,13 @@
     }
   }
 
-  function executeFill(mode) {
+   async function executeFill(mode) {
     let filledCount = 0;
 
     // Scan input, select, textarea elements
-    const inputs = document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]), select, textarea');
+    const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]), select, textarea'));
 
-    inputs.forEach(el => {
+    for (const el of inputs) {
       // 1. Direct Workday & Barclays internal selector matching (Strict 1:1)
       let match = window.UniversalMatcher.matchWorkdayAutomationId(el, currentProfile);
 
@@ -231,8 +292,8 @@
       if (match && match.value !== undefined && match.value !== null) {
         // If it's a Workday Core field with an empty string (""), inject empty string and skip Q&A matching
         if (match.isWorkdayCore && match.value === "") {
-          injectReactValue(el, "");
-          return;
+          await simulateHumanTyping(el, "");
+          continue;
         }
 
         if (match.value !== "") {
@@ -246,8 +307,8 @@
           } else if (type === 'radio' || type === 'checkbox') {
             filledSuccess = setRadioOrCheckbox(el, match.value);
           } else {
-            // Apply stealth human-mimicry injection to all text inputs and textareas
-            injectReactValue(el, match.value);
+            // Apply Letter-by-Letter human typing simulation to all text inputs and textareas
+            await simulateHumanTyping(el, match.value);
             filledSuccess = true;
           }
 
@@ -257,7 +318,7 @@
           }
         }
       }
-    });
+    }
 
     // 3. Scan Workday Custom Dropdowns (React Select Widgets that are NOT native <select> tags)
     const customDropdowns = document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]');
@@ -423,7 +484,7 @@
         }
       });
     } else {
-      showToast(`⚠️ No filled input fields found to learn on this page. Type your answers first!`, "info");
+      showToast(`ℹ️ No typed input fields found to learn on this page.`, "info");
     }
   }
 
@@ -481,57 +542,68 @@
     const emailVal = currentProfile?.credentials?.email || currentProfile?.personal?.email;
     const passVal = currentProfile?.credentials?.password;
 
-    // Sequential Step A: Inject Email field
-    if (emailInput && emailVal) {
-      injectReactValue(emailInput, emailVal);
-      highlightField(emailInput);
-    }
-
-    // Sequential Step B: Wait 200ms, then inject Password field
-    setTimeout(() => {
-      if (passInput && passVal) {
-        injectReactValue(passInput, passVal);
-        highlightField(passInput);
+    (async () => {
+      // Sequential Step A: Inject Email field with letter-by-letter human typing
+      if (emailInput && emailVal) {
+        await simulateHumanTyping(emailInput, emailVal);
+        highlightField(emailInput);
       }
 
-      executeConsentAutoCheck();
-
-      // Sequential Step C: Wait 500ms, then target real submit button (or fallback shield / findLoginSubmitButton)
-      setTimeout(() => {
-        // 1. Target real submit button first (human simulation evades shield trigger)
-        const realBtn = document.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="signInButton"]');
-
-        // 2. Fallback to click_filter shield overlay if present
-        const shieldBtn = document.querySelector('[data-automation-id="click_filter"]');
-
-        const loginBtn = realBtn || shieldBtn || findLoginSubmitButton();
-
-        if (loginBtn) {
-          showToast(`🔑 Signing into ${hostname}...`, "success");
-          loginBtn.click();
-          try {
-            loginBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-          } catch (e) {}
-        } else {
-          showToast(`⚠️ Filled credentials, but could not locate Sign In submit button.`, "info");
+      // Sequential Step B: Wait 200ms, then inject Password field
+      setTimeout(async () => {
+        if (passInput && passVal) {
+          await simulateHumanTyping(passInput, passVal);
+          highlightField(passInput);
         }
-      }, 500);
-    }, 200);
+
+        executeConsentAutoCheck();
+
+        // Sequential Step C: Wait 500ms, then target real submit button (or fallback shield / findLoginSubmitButton)
+        setTimeout(() => {
+          // 1. Target real submit button first (human simulation evades shield trigger)
+          const realBtn = document.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="signInButton"]');
+
+          // 2. Fallback to click_filter shield overlay if present
+          const shieldBtn = document.querySelector('[data-automation-id="click_filter"]');
+
+          const loginBtn = realBtn || shieldBtn || findLoginSubmitButton();
+
+          if (loginBtn) {
+            showToast(`🔑 Signing into ${hostname}...`, "success");
+            loginBtn.click();
+            try {
+              loginBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+            } catch (e) {}
+          } else {
+            showToast(`⚠️ Filled credentials, but could not locate Sign In submit button.`, "info");
+          }
+        }, 500);
+      }, 200);
+    })();
   }
 
-  function executeSignUpFlow(hostname) {
+  async function executeSignUpFlow(hostname) {
     let fieldsFilled = 0;
 
     // 1. Auto Fill credentials & basic personal info
-    const inputs = document.querySelectorAll('input:not([type="hidden"]), select, textarea');
-    inputs.forEach(el => {
+    const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, textarea'));
+    for (const el of inputs) {
       const match = window.UniversalMatcher.matchField(el, currentProfile, "ALL");
       if (match && match.value) {
-        setNativeValue(el, match.value);
-        fieldsFilled++;
+        const tagName = el.tagName.toLowerCase();
+        const type = (el.type || '').toLowerCase();
+
+        if (tagName === 'select') {
+          if (setSelectValue(el, match.value)) fieldsFilled++;
+        } else if (type === 'radio' || type === 'checkbox') {
+          if (setRadioOrCheckbox(el, match.value)) fieldsFilled++;
+        } else {
+          await simulateHumanTyping(el, match.value);
+          fieldsFilled++;
+        }
         highlightField(el);
       }
-    });
+    }
 
     // 2. Consent Auto-Check Engine (Terms & Conditions / Privacy Policy Checkboxes)
     fieldsFilled += executeConsentAutoCheck();

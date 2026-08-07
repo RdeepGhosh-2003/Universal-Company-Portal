@@ -2,6 +2,17 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.7] - 2026-08-07
+
+### ⌨️ Letter-by-Letter Human Typing Simulation
+- **Asynchronous `simulateHumanTyping` (`content/content_script.js`)**:
+  - Built `simulateHumanTyping(element, text)` helper executing complete human typing sequence: `focus()` ➔ clear field reset ➔ character-by-character iteration with randomized 15ms–30ms delays (`keydown`, `keypress`, `input`, `keyup`) ➔ final `change` event ➔ `blur()`.
+- **Refactored Main Form-Filling Loop (`content/content_script.js`)**:
+  - Converted `executeFill` and `executeSignUpFlow` to `async` functions and `await simulateHumanTyping(el, val)` for all standard text inputs (`<input type="text">`, `email`, `tel`, `url`, `number`, `password`, `<textarea>`).
+  - Completely defeats Workday's aggressive React Virtual DOM state locks on main application forms (Given Name, Address, City, Postal Code), eliminating false "required field" validation errors when saving.
+
+---
+
 ## [1.17.6] - 2026-08-07
 
 ### 🔤 Workday Custom Dropdowns, Diacritic Normalization & Radio Wrapper Targeting
