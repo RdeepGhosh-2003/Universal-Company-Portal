@@ -390,6 +390,77 @@
     } else {
       showToast(`No new fields matched for auto-fill on this page.`, "info");
     }
+
+    // Call Hybrid Handoff Completion Watcher to monitor manual field completion and auto-submit
+    initCompletionWatcher();
+  }
+
+  let completionWatcherInterval = null;
+
+  /**
+   * Hybrid Handoff Completion Watcher
+   * Polls every 500ms post-autofill to check if user has manually completed stubborn custom fields
+   * (e.g., candidateIsPreviousWorker radio and multiselectContainer combobox).
+   * Once satisfied, automatically submits the form via Save and Continue / Submit button.
+   */
+  function initCompletionWatcher() {
+    if (completionWatcherInterval) {
+      clearInterval(completionWatcherInterval);
+    }
+
+    completionWatcherInterval = setInterval(() => {
+      // 1. Radio Button Check (candidateIsPreviousWorker or any required radio on page)
+      const isPreviousWorkerRadio = document.querySelector('input[name="candidateIsPreviousWorker"]');
+      let radioSatisfied = true;
+      if (isPreviousWorkerRadio) {
+        radioSatisfied = document.querySelector('input[name="candidateIsPreviousWorker"]:checked') !== null;
+      } else {
+        const requiredRadios = Array.from(document.querySelectorAll('input[type="radio"][required], input[type="radio"][aria-required="true"]'));
+        if (requiredRadios.length > 0) {
+          const names = new Set(requiredRadios.map(r => r.name).filter(Boolean));
+          radioSatisfied = Array.from(names).every(name => document.querySelector(`input[name="${CSS.escape(name)}"]:checked`) !== null);
+        }
+      }
+
+      // 2. Combobox / Multiselect Check (multiselectContainer or searchBox pill/item)
+      const multiselectContainer = document.querySelector('[data-automation-id="multiselectContainer"], [data-automation-id="multiselectInputContainer"]');
+      let comboboxSatisfied = true;
+      if (multiselectContainer) {
+        const selectedPill = multiselectContainer.querySelector('[data-automation-id="selectedItem"], [class*="pill"], [class*="item"], [data-automation-id="searchBox"]');
+        if (selectedPill) {
+          const pillText = (selectedPill.textContent || selectedPill.value || '').trim();
+          comboboxSatisfied = pillText.length > 0;
+        } else {
+          comboboxSatisfied = (multiselectContainer.textContent || '').trim().length > 0;
+        }
+      }
+
+      // 3. Auto-Submit if both custom fields evaluate to true
+      if (radioSatisfied && comboboxSatisfied) {
+        clearInterval(completionWatcherInterval);
+        completionWatcherInterval = null;
+
+        showToast("⚡ Hybrid Handoff: Custom fields completed! Auto-submitting application...", "success");
+
+        setTimeout(() => {
+          const submitBtn = document.querySelector(
+            'button[title="Save and Continue"], ' +
+            '[data-automation-id="bottomNavigation"] button, ' +
+            '[data-automation-id="pageFooter"] button, ' +
+            '[data-automation-id="nextButton"], ' +
+            'button[data-automation-id="saveAndContinueButton"], ' +
+            'button[type="submit"]'
+          );
+
+          if (submitBtn && isElementVisible(submitBtn)) {
+            submitBtn.click();
+            try {
+              submitBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+            } catch (e) {}
+          }
+        }, 300);
+      }
+    }, 500);
   }
 
   /**

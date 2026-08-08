@@ -2,6 +2,17 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.14] - 2026-08-08
+
+### 🤝 Hybrid Handoff Completion Watcher & Auto-Submission Engine
+- **`initCompletionWatcher()` Polling Watcher (`content/content_script.js`)**:
+  - Implemented a 500ms post-autofill polling loop that monitors stubborn custom fields deferred to manual user completion (e.g. `candidateIsPreviousWorker` radio buttons and `multiselectContainer` comboboxes).
+- **Automated Form Advancement (`content/content_script.js`)**:
+  - Verifies DOM satisfaction for both radio selection (`input[name="candidateIsPreviousWorker"]:checked`) and multiselect tag/pill population.
+  - Upon user completion, immediately clears the watcher interval and triggers `.click()` on primary submit buttons (`button[title="Save and Continue"]`, `[data-automation-id="bottomNavigation"] button`, `[data-automation-id="nextButton"]`), advancing the application seamlessly.
+
+---
+
 ## [1.17.13] - 2026-08-08
 
 ### 🔘 Proprietary Multiselect Container & Invisible Radio Sibling Targeting

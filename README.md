@@ -120,6 +120,7 @@ Universal Company Portal/
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
 - **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard, localized, and Barclays customized Workday automation IDs (`address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"`, `legalNameSection_firstNameLocal`, etc.).
+- **Hybrid Handoff Completion Watcher**: Runs a 500ms post-autofill polling loop (`initCompletionWatcher()`) monitoring manual user completion on stubborn custom fields, auto-triggering form submission (`Save and Continue`) once satisfied.
 - **Fuzzy Matcher Global Kill-Switch & Extension Exclusions**: Hard aborts generic screening Q&A fuzzy matching on sensitive attributes and explicitly excludes "extension" fields from primary phone mapping.
 - **Force-Close & Verify State Cleanser**: Dispatches body clicks, Escape key events, and 50ms polling verification (`forceCloseMenus()`) before and after dropdown selections to prevent Workday SPA listbox option merging.
 - **Proprietary Multiselect & Combobox Handler**: Targets `[data-automation-id="multiselectContainer"]` and `input[data-automation-id="searchBox"]`, typing search terms via `simulateHumanTyping`, waiting 800ms for option rendering, and explicitly clicking matching `[role="option"]` elements.
