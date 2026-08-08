@@ -191,7 +191,7 @@
     return false;
   }
 
-  // Handle Radio & Checkbox elements with label[for="id"] and parentElement fallback click targeting
+  // Handle Radio & Checkbox elements with visual sibling & parentElement click targeting
   async function setRadioOrCheckbox(inputEl, targetValue) {
     if (!inputEl) return false;
 
@@ -216,31 +216,48 @@
       inputEl.dispatchEvent(new Event('change', { bubbles: true }));
       inputEl.dispatchEvent(new Event('input', { bubbles: true }));
 
-      let clickedElement = null;
+      // Precision Radio/Checkbox Visual Sibling & Parent Targeting
+      const visualSibling = inputEl.nextElementSibling;
+      let clickedVisual = false;
 
-      // Extract id attribute and attempt label[for="id"] click
-      if (inputEl.id) {
+      // 1. Dispatch click on visualSibling (span/div adjacent to hidden opacity:0 input)
+      if (visualSibling && isElementVisible(visualSibling)) {
+        visualSibling.click();
         try {
-          clickedElement = document.querySelector(`label[for="${CSS.escape(inputEl.id)}"]`);
+          visualSibling.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
         } catch (e) {}
+        clickedVisual = true;
       }
 
-      if (!clickedElement && inputEl.labels && inputEl.labels[0]) {
-        clickedElement = inputEl.labels[0];
-      }
-
-      // Fallback to input.parentElement.click() if no label exists
-      if (!clickedElement && inputEl.parentElement) {
-        clickedElement = inputEl.parentElement;
-      }
-
-      if (clickedElement && isElementVisible(clickedElement)) {
-        clickedElement.click();
+      // 2. Dispatch click on inputEl.parentElement (Workday's custom listener wrapper div)
+      if (inputEl.parentElement && isElementVisible(inputEl.parentElement)) {
+        inputEl.parentElement.click();
         try {
-          clickedElement.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+          inputEl.parentElement.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
         } catch (e) {}
-      } else {
-        inputEl.click();
+        clickedVisual = true;
+      }
+
+      // 3. Fallback to label[for="id"] or direct input click if visual wrappers were not clicked
+      if (!clickedVisual) {
+        let labelEl = null;
+        if (inputEl.id) {
+          try {
+            labelEl = document.querySelector(`label[for="${CSS.escape(inputEl.id)}"]`);
+          } catch (e) {}
+        }
+        if (!labelEl && inputEl.labels && inputEl.labels[0]) {
+          labelEl = inputEl.labels[0];
+        }
+
+        if (labelEl && isElementVisible(labelEl)) {
+          labelEl.click();
+          try {
+            labelEl.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+          } catch (e) {}
+        } else {
+          inputEl.click();
+        }
       }
 
       await new Promise(r => setTimeout(r, 100));
@@ -341,8 +358,8 @@
       }
     }
 
-    // 3. Scan Workday Custom Dropdowns (React Select Widgets that are NOT native <select> tags)
-    const customDropdowns = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], input[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
+    // 3. Scan Workday Custom Dropdowns & Multiselect Containers
+    const customDropdowns = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], [data-automation-id="multiselectContainer"], div[role="combobox"], input[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
     for (const widget of customDropdowns) {
       if (!isElementVisible(widget)) continue;
 
@@ -403,8 +420,9 @@
   }
 
   /**
-   * Workday Custom Dropdown Handler (React Select Widgets & Searchable Comboboxes)
-   * Dispatches native click events or types into combobox inputs, then explicitly clicks matching filtered [role="option"] elements.
+   * Workday Custom Dropdown & Multiselect Handler (React Select Widgets & Searchable Comboboxes)
+   * Handles [data-automation-id="selectWidget"] and [data-automation-id="multiselectContainer"].
+   * Dispatches native click events or types into searchBox inputs, then explicitly clicks matching filtered [role="option"] elements.
    * Strictly async with forceCloseMenus state cleanser to prevent DOM listbox node recycling option merging.
    */
   async function handleWorkdayDropdown(targetWidgetOrText, answerToSelect) {
@@ -430,7 +448,7 @@
           // Step B: Find closest sibling or child button representing the dropdown
           const container = labelNode.closest('.form-group, fieldset, div[data-automation-id*="formField"], div[class*="FormField"], form > div, div');
           if (container) {
-            dropdownTrigger = container.querySelector('[data-automation-id="selectWidget"], [data-automation-id*="prompt"], div[role="combobox"], input[role="combobox"], button[aria-haspopup="listbox"], button[aria-haspopup="menu"], [data-automation-id="activeMenuButton"]');
+            dropdownTrigger = container.querySelector('[data-automation-id="selectWidget"], [data-automation-id="multiselectContainer"], [data-automation-id*="prompt"], div[role="combobox"], input[role="combobox"], input[data-automation-id="searchBox"], button[aria-haspopup="listbox"], button[aria-haspopup="menu"], [data-automation-id="activeMenuButton"]');
             if (dropdownTrigger && isElementVisible(dropdownTrigger)) break;
           }
         }
@@ -438,7 +456,7 @@
 
       // Fallback: If no direct trigger found via label XPath, scan visible select widgets on page directly
       if (!dropdownTrigger) {
-        const widgets = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], div[role="combobox"], input[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
+        const widgets = Array.from(document.querySelectorAll('[data-automation-id="selectWidget"], [data-automation-id="multiselectContainer"], div[role="combobox"], input[role="combobox"], button[aria-haspopup="listbox"], [data-automation-id*="prompt"]'));
         dropdownTrigger = widgets.find(w => {
           if (!isElementVisible(w)) return false;
           const text = normalizeText(window.UniversalMatcher.getElementLabelText(w));
@@ -452,12 +470,21 @@
     // Cleanser Step 1: Force-close any existing open menus before triggering new dropdown
     await forceCloseMenus();
 
-    // Check if dropdown trigger is a searchable combobox input or contains an input
-    const searchInput = (dropdownTrigger.tagName.toLowerCase() === 'input') ? dropdownTrigger : dropdownTrigger.querySelector('input');
+    // Check if dropdown trigger is or contains an input[data-automation-id="searchBox"], input[role="combobox"], or input
+    const searchBox = (dropdownTrigger.tagName.toLowerCase() === 'input') ? dropdownTrigger :
+                      (dropdownTrigger.querySelector('input[data-automation-id="searchBox"]') ||
+                       dropdownTrigger.querySelector('input[role="combobox"]') ||
+                       dropdownTrigger.querySelector('input'));
 
-    if (searchInput) {
-      // Searchable Combobox Flow: Type search term via simulateHumanTyping then wait 800ms for options to filter
-      await simulateHumanTyping(searchInput, answerToSelect);
+    if (searchBox) {
+      // Execute click on searchBox first
+      searchBox.click();
+      try {
+        searchBox.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      } catch (e) {}
+
+      // Searchable Combobox / Multiselect Flow: Type search term via simulateHumanTyping then wait 800ms for options to render
+      await simulateHumanTyping(searchBox, answerToSelect);
       await new Promise(r => setTimeout(r, 800));
     } else {
       // Standard Select Widget Flow: Click trigger button and wait 600ms to open listbox
@@ -493,7 +520,7 @@
     });
 
     // Fallback for filtered combobox: if exact text match not found but filtered list exists, pick the first visible option
-    if (!matchedOption && searchInput && optionElements.length > 0) {
+    if (!matchedOption && searchBox && optionElements.length > 0) {
       matchedOption = optionElements.find(opt => isElementVisible(opt)) || optionElements[0];
     }
 

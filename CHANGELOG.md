@@ -2,6 +2,17 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.13] - 2026-08-08
+
+### 🔘 Proprietary Multiselect Container & Invisible Radio Sibling Targeting
+- **Precision Radio Sibling & Parent Targeting (`content/content_script.js`)**:
+  - Upgraded `setRadioOrCheckbox` to locate `inputEl.nextElementSibling` (the custom visual `<span>`/`<div>` circle next to Workday's `opacity: 0` `<input type="radio">`) and `inputEl.parentElement` (Workday wrapper `<div>`), dispatching native `.click()` and `MouseEvent('click')` events to trigger Workday's custom listeners.
+- **Multiselect Container & SearchBox Support (`content/content_script.js`)**:
+  - Added `[data-automation-id="multiselectContainer"]` to valid dropdown widget selectors across `executeFill` and `handleWorkdayDropdown`.
+  - Added detection for `input[data-automation-id="searchBox"]`, clicking the searchBox, executing `simulateHumanTyping(searchBox, targetText)`, waiting 800ms for option rendering, clicking matching `[role="option"]`, and calling `forceCloseMenus()`.
+
+---
+
 ## [1.17.12] - 2026-08-08
 
 ### 📱 React Mask Substring Injection, Combobox Option Click & Extension Exclusions
