@@ -2,6 +2,16 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.31] - 2026-08-15
+
+### 🔑 Universal Password Brute-Force Loop & Omni-Click Submit Shield Bypass
+- **Universal Password Brute-Force (`content/content_script.js`)**:
+  - Refactored `executeCreateAccountFlow` to query all `input[type="password"]` fields in the container and sequentially inject passwords with `simulateHumanTyping` and 500ms delays, bypassing React unmounting conflicts on verification fields.
+- **Omni-Click Submit Shield Bypass (`content/content_script.js`)**:
+  - Implemented an Omni-Click event chain on submit targets (`[data-automation-id="click_filter"]`, `[data-automation-id="createAccountSubmitButton"]`, `[data-automation-id="registerSubmitButton"]`, `.css-1hunomw`), firing `focus()`, `mousedown`, `mouseup`, `.click()`, and `Enter` key dispatches post 1200ms DOM settling delay.
+
+---
+
 ## [1.17.14] - 2026-08-08
 
 ### 🤝 Hybrid Handoff Completion Watcher & Auto-Submission Engine

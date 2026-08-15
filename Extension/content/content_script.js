@@ -678,7 +678,21 @@
     }
   }
 
-  function executeMasterAction() {
+  // Master Action Engine (Alt+S): Intelligent Sign-Up & Auto-Login Routing
+  function performAutoSignUp(container = document) {
+    if (!currentProfile) {
+      chrome.runtime.sendMessage({ action: "GET_PROFILE" }, (response) => {
+        if (response && response.profile) {
+          currentProfile = response.profile;
+          executeMasterAction(container);
+        }
+      });
+    } else {
+      executeMasterAction(container);
+    }
+  }
+
+  function executeMasterAction(container = document) {
     chrome.runtime.sendMessage({ action: "GET_REGISTERED_DOMAINS" }, (response) => {
       const registeredDomains = (response && response.registeredDomains) ? response.registeredDomains : (currentProfile?.registeredDomains || []);
       const hostname = window.location.hostname.toLowerCase();
@@ -686,34 +700,38 @@
       const isRegistered = registeredDomains.some(d => d.toLowerCase() && (hostname.includes(d.toLowerCase()) || d.toLowerCase().includes(hostname)));
 
       // Dual-Mode Auth Detection: Check if confirmPassword / verify password input exists on screen
-      const confirmPassEl = document.querySelector('[data-automation-id="confirmPassword"]') ||
-                            Array.from(document.querySelectorAll('input[type="password"]')).find(el => {
+      const confirmPassEl = container.querySelector('[data-automation-id="confirmPassword"], [data-automation-id="verifyPassword"]') ||
+                            Array.from(container.querySelectorAll('input[type="password"]')).find(el => {
                               const txt = window.UniversalMatcher.getElementLabelText(el);
-                              return txt.includes('verify') || txt.includes('confirm') || txt.includes('re-enter');
+                              return txt.includes('verify') || txt.includes('confirm') || txt.includes('re-enter') || txt.includes('retype');
                             });
-      const isCreateAccountMode = confirmPassEl && isElementVisible(confirmPassEl);
+      const passwordInputCount = container.querySelectorAll('input[type="password"]').length;
+      const isCreateAccountMode = !!(confirmPassEl || passwordInputCount >= 2);
 
-      if (isRegistered || !isCreateAccountMode) {
-        // Mode B (Sign In): Auto-fill saved credentials and submit login
-        executeLoginFlow(hostname);
-      } else {
+      if (isCreateAccountMode) {
         // Mode A (Create Account): Auto-fill registration, check terms, submit & register domain
-        executeSignUpFlow(hostname);
+        executeCreateAccountFlow(hostname, container);
+      } else if (isRegistered) {
+        // Mode B (Sign In): Auto-fill saved credentials and submit login
+        executeLoginFlow(hostname, container);
+      } else {
+        // Fallback: Default to Create Account Flow if single password field and unregistered
+        executeCreateAccountFlow(hostname, container);
       }
     });
   }
 
-  function executeLoginFlow(hostname) {
+  function executeLoginFlow(hostname, container = document) {
     showToast(`🔑 Recognized Auth Form on ${hostname}! Auto-signing in...`, "success");
 
     // 1. Locate Email and Password fields
-    const emailInput = document.querySelector('[data-automation-id="email"], input[type="email"]') ||
-                       Array.from(document.querySelectorAll('input:not([type="hidden"])')).find(el => {
+    const emailInput = container.querySelector('[data-automation-id="email"], input[type="email"]') ||
+                       Array.from(container.querySelectorAll('input:not([type="hidden"])')).find(el => {
                          const txt = window.UniversalMatcher.getElementLabelText(el);
                          return txt.includes('email') || txt.includes('username');
                        });
 
-    const passInput = document.querySelector('[data-automation-id="password"], input[type="password"]');
+    const passInput = container.querySelector('[data-automation-id="password"], input[type="password"]');
 
     const emailVal = currentProfile?.credentials?.email || currentProfile?.personal?.email;
     const passVal = currentProfile?.credentials?.password;
@@ -732,17 +750,17 @@
           highlightField(passInput);
         }
 
-        executeConsentAutoCheck();
+        executeConsentAutoCheck(container);
 
         // Sequential Step C: Wait 500ms, then target real submit button (or fallback shield / findLoginSubmitButton)
         setTimeout(() => {
           // 1. Target real submit button first (human simulation evades shield trigger)
-          const realBtn = document.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="signInButton"]');
+          const realBtn = container.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="signInButton"]');
 
           // 2. Fallback to click_filter shield overlay if present
-          const shieldBtn = document.querySelector('[data-automation-id="click_filter"]');
+          const shieldBtn = container.querySelector('[data-automation-id="click_filter"]');
 
-          const loginBtn = realBtn || shieldBtn || findLoginSubmitButton();
+          const loginBtn = realBtn || shieldBtn || findLoginSubmitButton(container);
 
           if (loginBtn) {
             showToast(`🔑 Signing into ${hostname}...`, "success");
@@ -758,56 +776,110 @@
     })();
   }
 
-  async function executeSignUpFlow(hostname) {
-    let fieldsFilled = 0;
+  async function executeCreateAccountFlow(hostname, container = document) {
+    showToast(`📝 Recognized Account Creation Form on ${hostname}! Auto-registering...`, "success");
 
-    // 1. Auto Fill credentials & basic personal info
-    const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, textarea'));
+    const emailVal = currentProfile?.credentials?.email || currentProfile?.personal?.email;
+    const passVal = currentProfile?.credentials?.password;
+
+    // Step 1: Inject Email input
+    const emailInput = container.querySelector('[data-automation-id="email"], input[type="email"]') ||
+                       Array.from(container.querySelectorAll('input:not([type="hidden"])')).find(el => {
+                         const txt = window.UniversalMatcher.getElementLabelText(el);
+                         return txt.includes('email') || txt.includes('username');
+                       });
+
+    if (emailInput && emailVal) {
+      await simulateHumanTyping(emailInput, emailVal);
+      highlightField(emailInput);
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    // Step 2: Universal Password Brute-Force Iteration Loop
+    const allPassInputs = Array.from(container.querySelectorAll('input[type="password"]'));
+    for (const pInput of allPassInputs) {
+      if (isElementVisible(pInput) && passVal) {
+        await simulateHumanTyping(pInput, passVal);
+        highlightField(pInput);
+        await new Promise(r => setTimeout(r, 500));
+      }
+    }
+
+    await new Promise(r => setTimeout(r, 300));
+
+    // Step 3: Auto-fill remaining registration inputs
+    const inputs = Array.from(container.querySelectorAll('input:not([type="hidden"]):not([type="password"]):not([type="email"]):not([type="checkbox"]):not([type="radio"]), select, textarea'));
     for (const el of inputs) {
+      if (el === emailInput) continue;
       const match = window.UniversalMatcher.matchField(el, currentProfile, "ALL");
       if (match && match.value) {
         const tagName = el.tagName.toLowerCase();
-        const type = (el.type || '').toLowerCase();
 
         if (tagName === 'select') {
-          if (setSelectValue(el, match.value)) fieldsFilled++;
-        } else if (type === 'radio' || type === 'checkbox') {
-          if (setRadioOrCheckbox(el, match.value)) fieldsFilled++;
+          setSelectValue(el, match.value);
         } else {
           await simulateHumanTyping(el, match.value);
-          fieldsFilled++;
         }
         highlightField(el);
       }
     }
 
-    // 2. Consent Auto-Check Engine (Terms & Conditions / Privacy Policy Checkboxes)
-    fieldsFilled += executeConsentAutoCheck();
+    await new Promise(r => setTimeout(r, 300));
 
-    // 3. Register hostname to Domain Memory Engine
+    // Step 4: Consent Auto-Check Engine (Terms & Conditions / Privacy Policy Checkboxes)
+    executeConsentAutoCheck(container);
+
+    // Register hostname to Domain Memory Engine
     chrome.runtime.sendMessage({ action: "REGISTER_DOMAIN", domain: hostname });
 
     showToast(`🚀 Account registration filled! Saved ${hostname} to Memory Engine.`, "success");
 
-    // 4. Auto-Submit Sign-Up Form if enabled
-    if (currentProfile.settings && currentProfile.settings.autoSubmitSignUp !== false) {
-      setTimeout(() => {
-        const submitBtn = findSignUpSubmitButton();
-        if (submitBtn) {
-          showToast(`🚀 Submitting account creation...`, "success");
-          submitBtn.click();
+    // Step 5: Omni-Click Submit Bypass (Wait 1200ms for DOM settling then blast submit cluster)
+    if (currentProfile?.settings?.autoSubmitSignUp !== false) {
+      await new Promise(r => setTimeout(r, 1200));
+
+      const submitTargets = [
+        container.querySelector('[data-automation-id="click_filter"]'),
+        container.querySelector('[data-automation-id="createAccountSubmitButton"]'),
+        container.querySelector('[data-automation-id="registerSubmitButton"]'),
+        container.querySelector('.css-1hunomw')
+      ].filter(el => el && isElementVisible(el));
+
+      if (submitTargets.length > 0) {
+        showToast("🚀 Blasting through Workday submit shield...", "success");
+        submitTargets.forEach(target => {
+          try {
+            target.focus();
+            target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
+            target.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
+            target.click();
+            target.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter', code: 'Enter' }));
+          } catch (e) {}
+        });
+      } else {
+        const fallbackBtn = findSignUpSubmitButton(container);
+        if (fallbackBtn && isElementVisible(fallbackBtn)) {
+          showToast("🚀 Submitting account creation...", "success");
+          fallbackBtn.click();
+        } else {
+          showToast(`⚠️ Filled registration, but could not locate Create Account button.`, "info");
         }
-      }, 500);
+      }
     }
   }
 
+  // Alias for backward compatibility
+  async function executeSignUpFlow(hostname, container = document) {
+    return executeCreateAccountFlow(hostname, container);
+  }
+
   // Consent Auto-Check Engine: Automatically accepts terms, privacy policy & consent checkboxes
-  function executeConsentAutoCheck() {
+  function executeConsentAutoCheck(container = document) {
     if (currentProfile?.settings?.autoCheckTerms === false) return 0;
 
     let checkedCount = 0;
     // Scan both native input checkboxes and ARIA role="checkbox" elements (Workday / SPAs)
-    const checkboxElements = Array.from(document.querySelectorAll('input[type="checkbox"], [role="checkbox"]'));
+    const checkboxElements = Array.from(container.querySelectorAll('input[type="checkbox"], [role="checkbox"]'));
 
     checkboxElements.forEach(cb => {
       const isConsent = window.UniversalMatcher.isConsentCheckbox(cb);
@@ -819,7 +891,7 @@
             cb.dispatchEvent(new Event('input', { bubbles: true }));
 
             // Workday / SPA compatibility: Simulate direct click on associated label or parent wrapper
-            const label = cb.id ? document.querySelector(`label[for="${CSS.escape(cb.id)}"]`) : null;
+            const label = cb.id ? container.querySelector(`label[for="${CSS.escape(cb.id)}"]`) : null;
             if (label && isElementVisible(label)) {
               label.click();
             } else if (cb.parentElement && isElementVisible(cb.parentElement)) {
@@ -856,9 +928,9 @@
   }
 
   // Find Login Submit Button with Workday Selectors & XPath Fallback
-  function findLoginSubmitButton() {
+  function findLoginSubmitButton(container = document) {
     // 1. Prioritize real button selectors (human simulation evades shield trigger), then shield overlay
-    const signInBtn = document.querySelector(
+    const signInBtn = container.querySelector(
       '[data-automation-id="signInSubmitButton"], ' +
       '[data-automation-id="signInButton"], ' +
       'button[aria-label="Sign In"], ' +
@@ -867,11 +939,11 @@
     );
     if (signInBtn && isElementVisible(signInBtn)) return signInBtn;
 
-    const shieldBtn = document.querySelector('[data-automation-id="click_filter"]');
+    const shieldBtn = container.querySelector('[data-automation-id="click_filter"]');
     if (shieldBtn && isElementVisible(shieldBtn)) return shieldBtn;
 
     // 2. Query visible candidate buttons by keyword
-    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a.btn, [role="button"], div[role="button"]'));
+    const candidates = Array.from(container.querySelectorAll('button, input[type="submit"], input[type="button"], a.btn, [role="button"], div[role="button"]'));
     const targetKeywords = ['sign in', 'log in', 'login', 'signin', 'log-in', 'sign-in', 'continue', 'submit'];
 
     for (const kw of targetKeywords) {
@@ -886,7 +958,7 @@
     try {
       const xpathResult = document.evaluate(
         '//*[self::button or self::div or self::a or self::input][translate(normalize-space(text()), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")="sign in" or contains(translate(normalize-space(text()), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "sign in")]',
-        document,
+        container,
         null,
         XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
         null
@@ -897,18 +969,18 @@
       }
     } catch (e) {}
 
-    const formSubmit = document.querySelector('form input[type="submit"], form button[type="submit"]');
+    const formSubmit = container.querySelector('form input[type="submit"], form button[type="submit"]');
     return (formSubmit && isElementVisible(formSubmit)) ? formSubmit : null;
   }
 
   // Find Sign-Up Submit Button
-  function findSignUpSubmitButton() {
+  function findSignUpSubmitButton(container = document) {
     // 1. Workday specific automation ID queries
-    const workdayBtn = document.querySelector('[data-automation-id="createAccountSubmitButton"], [data-automation-id="click_sub"], [data-automation-id="registerSubmitButton"]');
+    const workdayBtn = container.querySelector('[data-automation-id="createAccountSubmitButton"], [data-automation-id="click_sub"], [data-automation-id="registerSubmitButton"]');
     if (workdayBtn && isElementVisible(workdayBtn)) return workdayBtn;
 
     // 2. Query visible candidate buttons by keyword
-    const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a.btn, [role="button"]'));
+    const candidates = Array.from(container.querySelectorAll('button, input[type="submit"], input[type="button"], a.btn, [role="button"]'));
     const targetKeywords = ['create account', 'sign up', 'signup', 'register', 'create profile', 'join now', 'complete registration', 'submit'];
 
     for (const kw of targetKeywords) {
@@ -920,7 +992,7 @@
     }
 
     // Fallback to first form submit button
-    const formSubmit = document.querySelector('form input[type="submit"], form button[type="submit"]');
+    const formSubmit = container.querySelector('form input[type="submit"], form button[type="submit"]');
     return (formSubmit && isElementVisible(formSubmit)) ? formSubmit : null;
   }
 
