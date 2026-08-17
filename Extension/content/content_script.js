@@ -130,6 +130,23 @@
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
+    // 3.5 Ghost Data React State Fix (Space + Backspace Simulation)
+    setVal(strVal + " ");
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    try {
+      element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: ' ', code: 'Space' }));
+      element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: ' ', code: 'Space' }));
+    } catch(e) {}
+
+    await new Promise(resolve => setTimeout(resolve, 30));
+
+    setVal(strVal);
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    try {
+      element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Backspace', code: 'Backspace' }));
+      element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: 'Backspace', code: 'Backspace' }));
+    } catch(e) {}
+
     // 4. 150ms delay after final keystroke before blur/change to ensure state sticks
     await new Promise(resolve => setTimeout(resolve, 150));
 

@@ -120,6 +120,7 @@ Universal Company Portal/
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
 - **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard, localized, and Barclays customized Workday automation IDs (`address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"`, `legalNameSection_firstNameLocal`, etc.).
+- **Space + Backspace React State Override**: Automated Space + Backspace keystroke simulation in `simulateHumanTyping` (Step 3.5) forces Workday's background React listeners to register filled inputs, defeating Ghost Data validation errors.
 - **Visibility-Filtered Login Credential Injection**: `executeLoginFlow` filters `emailInput` and `passInput` with `isElementVisible(el)`, preventing injection into hidden background forms.
 - **Auth Screen Credential Injection Intercept**: `performStartAutomation()` detects active Auth modals/pages, injects credentials via `performAutoSignUp(activeContainer)`, and exits before executing any submit button clicks.
 - **Strict DOM-Based Auth Mode Classification**: `isCreateAccountMode` strictly requires verification password fields or multiple password inputs (`!!(confirmPassEl || passwordInputCount >= 2)`), preventing Sign-In modals with footer links from being misclassified.

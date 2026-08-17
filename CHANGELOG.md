@@ -2,6 +2,15 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.40] - 2026-08-17
+
+### 👻 Space + Backspace React State Override for Workday Ghost Data Fix
+- **Automated Keystroke State Override (`content/content_script.js`)**:
+  - Injected Space + Backspace keystroke simulation at the end of `simulateHumanTyping` (Step 3.5).
+  - Forces Workday's background React state listeners to acknowledge and register typed input values, resolving false "required field" validation errors.
+
+---
+
 ## [1.17.39] - 2026-08-17
 
 ### 👁️ Visibility-Filtered Login Credential Injection
