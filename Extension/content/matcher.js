@@ -302,7 +302,9 @@ window.UniversalMatcher = (function() {
   const CONSENT_KEYWORDS = [
     'consent', 'terms', 'agree', 'processing of my personal data', 'acknowledge', 
     'terms of service', 'privacy policy', 'privacy', 'accept', 'condition', 
-    'legal statement', 'data processing', 'terms & conditions', 'policy'
+    'legal statement', 'data processing', 'terms & conditions', 'policy',
+    'creating this account', 'apply for positions', 'organization', 'allow me to apply',
+    'privacy notice', 'candidate privacy', 'i agree'
   ];
 
   // Strict 1:1 Workday & Barclays data-automation-id/id/name/data-fkit-id mapping dictionary

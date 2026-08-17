@@ -2,6 +2,18 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.32] - 2026-08-17
+
+### ⚡ Workday Agreement Checkbox Hard-Check, Omni-Click Submit & Data Page Auto-Fill
+- **Agreement Checkbox Visual Target Invocation (`content/content_script.js`)**:
+  - Implemented `clickAndCheckCheckbox` helper that forcefully checks native/ARIA checkboxes and fires native `.click()` and `MouseEvent('click')` dispatches on visual target labels, adjacent siblings (`cb.nextElementSibling`), and wrapper containers, guaranteeing Workday React state registration on candidate privacy agreements.
+- **Always-On Submit Target Cluster (`content/content_script.js`)**:
+  - Included `findSignUpSubmitButton(container)` directly inside `submitTargets` for Omni-Click execution, ensuring "Create Account" buttons are always blasted regardless of dynamic `data-automation-id` changes.
+- **Smart Page Routing & Post-Auth Auto-Fill (`content/content_script.js`)**:
+  - Upgraded `performStartAutomation()` and `checkAndTriggerAutoAuth()` to detect Auth/Create Account screens, Application Data forms (`My Information`, `My Experience`), and Job Description pages, seamlessly navigating through registration and auto-filling candidate data upon reaching Step 2.
+
+---
+
 ## [1.17.31] - 2026-08-15
 
 ### 🔑 Universal Password Brute-Force Loop & Omni-Click Submit Shield Bypass

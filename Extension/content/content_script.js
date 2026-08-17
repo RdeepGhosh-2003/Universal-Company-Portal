@@ -826,7 +826,11 @@
 
     await new Promise(r => setTimeout(r, 300));
 
-    // Step 4: Consent Auto-Check Engine (Terms & Conditions / Privacy Policy Checkboxes)
+    // Step 4: Forcefully check ALL terms & privacy agreement checkboxes on Create Account form
+    const allCbs = Array.from(container.querySelectorAll('input[type="checkbox"], [role="checkbox"], [data-automation-id*="checkbox"], [data-automation-id*="Checkbox"]'));
+    for (const cb of allCbs) {
+      clickAndCheckCheckbox(cb, container);
+    }
     executeConsentAutoCheck(container);
 
     // Register hostname to Domain Memory Engine
@@ -839,10 +843,11 @@
       await new Promise(r => setTimeout(r, 1200));
 
       const submitTargets = [
-        container.querySelector('[data-automation-id="click_filter"]'),
         container.querySelector('[data-automation-id="createAccountSubmitButton"]'),
+        container.querySelector('[data-automation-id="click_filter"]'),
         container.querySelector('[data-automation-id="registerSubmitButton"]'),
-        container.querySelector('.css-1hunomw')
+        container.querySelector('.css-1hunomw'),
+        findSignUpSubmitButton(container)
       ].filter(el => el && isElementVisible(el));
 
       if (submitTargets.length > 0) {
@@ -857,13 +862,7 @@
           } catch (e) {}
         });
       } else {
-        const fallbackBtn = findSignUpSubmitButton(container);
-        if (fallbackBtn && isElementVisible(fallbackBtn)) {
-          showToast("🚀 Submitting account creation...", "success");
-          fallbackBtn.click();
-        } else {
-          showToast(`⚠️ Filled registration, but could not locate Create Account button.`, "info");
-        }
+        showToast(`⚠️ Filled registration, but could not locate Create Account button.`, "info");
       }
     }
   }
@@ -871,6 +870,58 @@
   // Alias for backward compatibility
   async function executeSignUpFlow(hostname, container = document) {
     return executeCreateAccountFlow(hostname, container);
+  }
+
+  // Helper: Safely checks and fires native/React click events on checkboxes & visual wrappers
+  function clickAndCheckCheckbox(cb, container = document) {
+    if (!cb) return;
+
+    if (cb.tagName === 'INPUT') {
+      if (!cb.checked) {
+        cb.checked = true;
+      }
+      cb.dispatchEvent(new Event('change', { bubbles: true }));
+      cb.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Locate visual target (label, sibling, or wrapper) to trigger Workday React event listener
+      let visualTarget = null;
+      if (cb.id) {
+        try {
+          visualTarget = container.querySelector(`label[for="${CSS.escape(cb.id)}"]`);
+        } catch (e) {}
+      }
+      if (!visualTarget && cb.nextElementSibling) {
+        visualTarget = cb.nextElementSibling;
+      }
+      if (!visualTarget && cb.closest('label')) {
+        visualTarget = cb.closest('label');
+      }
+      if (!visualTarget && cb.parentElement) {
+        visualTarget = cb.parentElement;
+      }
+
+      if (visualTarget && isElementVisible(visualTarget)) {
+        visualTarget.click();
+        try {
+          visualTarget.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        } catch (e) {}
+      } else {
+        cb.click();
+      }
+      highlightField(visualTarget || cb);
+    } else {
+      cb.setAttribute('aria-checked', 'true');
+      cb.dataset.checked = 'true';
+      cb.dispatchEvent(new Event('change', { bubbles: true }));
+      cb.dispatchEvent(new Event('input', { bubbles: true }));
+      if (isElementVisible(cb)) {
+        cb.click();
+        try {
+          cb.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        } catch (e) {}
+      }
+      highlightField(cb);
+    }
   }
 
   // Consent Auto-Check Engine: Automatically accepts terms, privacy policy & consent checkboxes
@@ -884,39 +935,8 @@
     checkboxElements.forEach(cb => {
       const isConsent = window.UniversalMatcher.isConsentCheckbox(cb);
       if (isConsent) {
-        if (cb.tagName === 'INPUT') {
-          if (!cb.checked) {
-            cb.checked = true;
-            cb.dispatchEvent(new Event('change', { bubbles: true }));
-            cb.dispatchEvent(new Event('input', { bubbles: true }));
-
-            // Workday / SPA compatibility: Simulate direct click on associated label or parent wrapper
-            const label = cb.id ? container.querySelector(`label[for="${CSS.escape(cb.id)}"]`) : null;
-            if (label && isElementVisible(label)) {
-              label.click();
-            } else if (cb.parentElement && isElementVisible(cb.parentElement)) {
-              cb.parentElement.click();
-            } else {
-              cb.click();
-            }
-
-            highlightField(cb);
-            checkedCount++;
-          }
-        } else {
-          // Custom div/span with role="checkbox"
-          const isAriaChecked = cb.getAttribute('aria-checked') === 'true';
-          if (!isAriaChecked) {
-            cb.setAttribute('aria-checked', 'true');
-            cb.dispatchEvent(new Event('change', { bubbles: true }));
-            cb.dispatchEvent(new Event('input', { bubbles: true }));
-            if (isElementVisible(cb)) {
-              cb.click();
-            }
-            highlightField(cb);
-            checkedCount++;
-          }
-        }
+        clickAndCheckCheckbox(cb, container);
+        checkedCount++;
       }
     });
 
@@ -1128,6 +1148,30 @@
 
   // On-Demand Automation Trigger (Start Automation Button)
   function performStartAutomation() {
+    // 0. Smart Auth & Application Form Page Detection
+    const passwordInputs = Array.from(document.querySelectorAll('input[type="password"]'));
+    const isPasswordVisible = passwordInputs.some(el => isElementVisible(el));
+    const pageText = (document.body.innerText || '').toLowerCase();
+    const hasAuthForm = isPasswordVisible ||
+      pageText.includes('create account') ||
+      pageText.includes('register your account') ||
+      pageText.includes('verify new password');
+
+    if (hasAuthForm) {
+      showToast(`🔥 Start Automation: Auth / Account Creation Page Detected! Executing Auto-Sign Up...`, "success");
+      performAutoSignUp();
+      return;
+    }
+
+    const candidateInputs = Array.from(document.querySelectorAll('input:not([type="hidden"]):not([type="password"]):not([type="submit"]):not([type="button"]), select, textarea')).filter(el => isElementVisible(el));
+    const hasDataForm = candidateInputs.length >= 2 && (pageText.includes('my information') || pageText.includes('my experience') || pageText.includes('contact information') || pageText.includes('address'));
+
+    if (hasDataForm) {
+      showToast(`🔥 Start Automation: Application Data Page Detected! Auto-filling form fields...`, "success");
+      performAutoFill("ALL");
+      return;
+    }
+
     const validPhrases = [
       'apply', 'apply now', 'apply online', 'apply for job', 'apply for a job',
       'apply for this job', 'apply for position', 'apply to job', 'apply today',
@@ -1185,9 +1229,14 @@
         applyBtn.click();
       }, 300);
     } else {
-      // 4. Silence Chrome Warnings: Use console.info instead of console.warn to prevent Extension errors
-      console.info("Universal Auto-Fill Engine: No 'Apply' button found on current page.");
-      showToast(`⚠️ No 'Apply' button found on current page.`, "error");
+      // If no apply button found, fallback to auto-filling form if inputs exist
+      if (candidateInputs.length > 0) {
+        showToast(`⚡ Auto-filling form fields on current page...`, "success");
+        performAutoFill("ALL");
+      } else {
+        console.info("Universal Auto-Fill Engine: No 'Apply' button found on current page.");
+        showToast(`⚠️ No 'Apply' button found on current page.`, "error");
+      }
     }
   }
 
@@ -1226,6 +1275,20 @@
       setTimeout(() => {
         performAutoSignUp();
       }, 500);
+    } else {
+      // Auto-trigger Form Auto-Fill when arriving on candidate data page (e.g. My Information)
+      const formKeyData = `dataform_${window.location.pathname}`;
+      if (sessionStorage.getItem('autoDataFormKey') !== formKeyData && lastHandledFormId !== formKeyData) {
+        const candidateInputs = Array.from(document.querySelectorAll('input:not([type="hidden"]):not([type="password"]):not([type="submit"]):not([type="button"]), select, textarea')).filter(el => isElementVisible(el));
+        if (candidateInputs.length >= 2) {
+          sessionStorage.setItem('autoDataFormKey', formKeyData);
+          lastHandledFormId = formKeyData;
+          showToast(`⚡ Application Data Page Detected! Auto-filling form fields...`, "success");
+          setTimeout(() => {
+            performAutoFill("ALL");
+          }, 600);
+        }
+      }
     }
   }
 
