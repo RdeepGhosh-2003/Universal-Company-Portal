@@ -2,6 +2,16 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.33] - 2026-08-17
+
+### 🔥 Start Automation Button Scoping & Job Alerts Form Exclusion Filter
+- **Primary Apply Button Scoping (`content/content_script.js`)**:
+  - Refactored `performStartAutomation()` to focus strictly on finding and clicking the primary "Apply", "Apply Now", "Apply for Job", "Apply Online", or "Apply Manually" button on job posting pages.
+- **Job Alerts Subscription Exclusion Filter (`content/matcher.js`)**:
+  - Built `isJobAlertInput` in `matcher.js` to detect and bypass "Sign up for job alerts", newsletter, and talent community subscription forms, preventing the auto-fill engine from injecting candidate credentials into alert widgets.
+
+---
+
 ## [1.17.32] - 2026-08-17
 
 ### ⚡ Workday Agreement Checkbox Hard-Check, Omni-Click Submit & Data Page Auto-Fill

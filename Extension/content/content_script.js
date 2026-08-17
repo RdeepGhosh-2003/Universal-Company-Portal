@@ -1146,38 +1146,14 @@
     }
   }
 
-  // On-Demand Automation Trigger (Start Automation Button)
+  // On-Demand Automation Trigger (Start Automation Button: Finds & clicks primary "Apply" button)
   function performStartAutomation() {
-    // 0. Smart Auth & Application Form Page Detection
-    const passwordInputs = Array.from(document.querySelectorAll('input[type="password"]'));
-    const isPasswordVisible = passwordInputs.some(el => isElementVisible(el));
-    const pageText = (document.body.innerText || '').toLowerCase();
-    const hasAuthForm = isPasswordVisible ||
-      pageText.includes('create account') ||
-      pageText.includes('register your account') ||
-      pageText.includes('verify new password');
-
-    if (hasAuthForm) {
-      showToast(`🔥 Start Automation: Auth / Account Creation Page Detected! Executing Auto-Sign Up...`, "success");
-      performAutoSignUp();
-      return;
-    }
-
-    const candidateInputs = Array.from(document.querySelectorAll('input:not([type="hidden"]):not([type="password"]):not([type="submit"]):not([type="button"]), select, textarea')).filter(el => isElementVisible(el));
-    const hasDataForm = candidateInputs.length >= 2 && (pageText.includes('my information') || pageText.includes('my experience') || pageText.includes('contact information') || pageText.includes('address'));
-
-    if (hasDataForm) {
-      showToast(`🔥 Start Automation: Application Data Page Detected! Auto-filling form fields...`, "success");
-      performAutoFill("ALL");
-      return;
-    }
-
     const validPhrases = [
       'apply', 'apply now', 'apply online', 'apply for job', 'apply for a job',
       'apply for this job', 'apply for position', 'apply to job', 'apply today',
       'start application', 'apply manually', 'submit application'
     ];
-    const negativeWords = ['filter', 'search', 'save', 'login', 'sign in', 'remove', 'delete', 'share', 'help', 'menu'];
+    const negativeWords = ['filter', 'search', 'save', 'login', 'sign in', 'remove', 'delete', 'share', 'help', 'menu', 'alert', 'alerts', 'newsletter', 'job alert', 'job alerts', 'sign up'];
 
     // 1. Broaden Selector Scope & Collect Candidates
     let candidates = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"]'));
@@ -1197,17 +1173,17 @@
       });
     } catch (e) {}
 
-    // Sort candidates: prioritize elements within <main>, article, [role="main"], #content, .job-details
+    // Sort candidates: prioritize elements within <main>, article, [role="main"], #content, .job-details, .job-description, header
     candidates.sort((a, b) => {
-      const aInMain = a.closest('main, article, [role="main"], #content, .job-details, .job-description') ? 1 : 0;
-      const bInMain = b.closest('main, article, [role="main"], #content, .job-details, .job-description') ? 1 : 0;
+      const aInMain = a.closest('main, article, [role="main"], #content, .job-details, .job-description, header, [class*="job"]') ? 1 : 0;
+      const bInMain = b.closest('main, article, [role="main"], #content, .job-details, .job-description, header, [class*="job"]') ? 1 : 0;
       return bInMain - aInMain;
     });
 
     // 2 & 3. Flexible Text Matching & Visibility Check
     const applyBtn = candidates.find(el => {
       if (!isElementVisible(el)) return false;
-      const btnText = (el.textContent || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || '').toLowerCase().trim();
+      const btnText = (el.textContent || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || el.getAttribute('data-automation-id') || '').toLowerCase().trim();
 
       if (!btnText) return false;
 
@@ -1227,16 +1203,13 @@
       showToast(`🔥 Start Automation: Clicking "${displayBtnText}"...`, "success");
       setTimeout(() => {
         applyBtn.click();
+        try {
+          applyBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        } catch (e) {}
       }, 300);
     } else {
-      // If no apply button found, fallback to auto-filling form if inputs exist
-      if (candidateInputs.length > 0) {
-        showToast(`⚡ Auto-filling form fields on current page...`, "success");
-        performAutoFill("ALL");
-      } else {
-        console.info("Universal Auto-Fill Engine: No 'Apply' button found on current page.");
-        showToast(`⚠️ No 'Apply' button found on current page.`, "error");
-      }
+      console.info("Universal Auto-Fill Engine: No 'Apply' button found on current page.");
+      showToast(`⚠️ No 'Apply' button found on current page.`, "error");
     }
   }
 

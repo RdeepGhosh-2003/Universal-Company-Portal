@@ -216,11 +216,30 @@ window.UniversalMatcher = (function() {
   }
 
   /**
+   * Checks if an input element belongs to a Job Alerts / Newsletter subscription form
+   */
+  function isJobAlertInput(el) {
+    if (!el) return false;
+    const combinedStr = `${el.id || ''} ${el.name || ''} ${el.placeholder || ''} ${el.title || ''} ${el.getAttribute('aria-label') || ''} ${el.getAttribute('data-automation-id') || ''}`.toLowerCase();
+    if (combinedStr.includes('jobalert') || combinedStr.includes('job-alert') || combinedStr.includes('newsletter') || combinedStr.includes('subscribe')) return true;
+
+    const container = el.closest('form, div[class*="alert"], div[class*="Alert"], div[class*="subscribe"], section, div');
+    if (container) {
+      const headerText = (container.querySelector('h1, h2, h3, h4, legend, [class*="title"], [class*="header"]')?.textContent || container.innerText || '').toLowerCase();
+      if (headerText.includes('sign up for job alerts') || headerText.includes('job alert') || headerText.includes('job alerts') || headerText.includes('stay up to date') || headerText.includes('newsletter')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Main matching logic for a given HTML form input element
    */
   function matchField(el, profile, mode = "ALL") {
     if (!profile) return null;
     if (isSearchInput(el)) return null;
+    if (isJobAlertInput(el)) return null;
 
     const labelText = getElementLabelText(el);
     const type = (el.type || '').toLowerCase();
