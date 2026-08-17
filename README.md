@@ -120,6 +120,7 @@ Universal Company Portal/
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
 - **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard, localized, and Barclays customized Workday automation IDs (`address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"`, `legalNameSection_firstNameLocal`, etc.).
+- **Strict DOM-Based Auth Mode Classification**: `isCreateAccountMode` strictly requires verification password fields or multiple password inputs (`!!(confirmPassEl || passwordInputCount >= 2)`), preventing Sign-In modals with footer links from being misclassified.
 - **Domain Memory Routing & Sign-In Auto-Toggle**: Intercepts registered domains defaulting to "Create Account", auto-clicks "Already have an account? Sign In", and routes directly to `executeLoginFlow`.
 - **Primary Apply Button Scoping & Job Alert Exclusion**: `performStartAutomation()` focuses strictly on finding and clicking the primary "Apply", "Apply Now", or "Apply for Job" button, while `isJobAlertInput` filters out "Sign up for job alerts" newsletter forms.
 - **Workday Agreement Checkbox Hard-Check & Omni-Click Submit**: Forces native/ARIA checkbox state and dispatches `.click()` events on visual labels/siblings (`clickAndCheckCheckbox`), unlocking "Create Account" buttons and blasting submit targets (`findSignUpSubmitButton`) post 1200ms DOM settling.

@@ -2,6 +2,15 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.36] - 2026-08-17
+
+### 🎯 Strict DOM-Based Auth Mode Classification
+- **Refined `isCreateAccountMode` Classification (`content/content_script.js`)**:
+  - Removed overly broad text-based fallback matching that misclassified Sign-In modal overlays containing footer links ("Don't have an account yet? Create Account").
+  - Enforced strict DOM-based detection (`isCreateAccountMode = !!(confirmPassEl || passwordInputCount >= 2)`), preventing infinite intercept loops and ensuring direct routing to `executeLoginFlow` on Sign-In modals.
+
+---
+
 ## [1.17.35] - 2026-08-17
 
 ### 🧠 Domain Memory Engine Routing & Workday Sign In Auto-Toggle

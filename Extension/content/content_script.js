@@ -706,6 +706,8 @@
                               return txt.includes('verify') || txt.includes('confirm') || txt.includes('re-enter') || txt.includes('retype');
                             });
       const passwordInputCount = container.querySelectorAll('input[type="password"]').length;
+
+      // Account Creation Mode: Strictly rely on presence of verification fields or multiple password inputs
       const isCreateAccountMode = !!(confirmPassEl || passwordInputCount >= 2);
 
       if (isRegistered && isCreateAccountMode) {
