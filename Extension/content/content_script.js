@@ -743,14 +743,14 @@
   function executeLoginFlow(hostname, container = document) {
     showToast(`🔑 Recognized Auth Form on ${hostname}! Auto-signing in...`, "success");
 
-    // 1. Locate Email and Password fields
-    const emailInput = container.querySelector('[data-automation-id="email"], input[type="email"]') ||
-                       Array.from(container.querySelectorAll('input:not([type="hidden"])')).find(el => {
-                         const txt = window.UniversalMatcher.getElementLabelText(el);
-                         return txt.includes('email') || txt.includes('username');
-                       });
+    // 1. Locate strictly VISIBLE Email and Password fields
+    const emailInput = Array.from(document.querySelectorAll('[data-automation-id="email"], input[type="email"], input[type="text"]')).find(el => {
+      if (!isElementVisible(el)) return false;
+      const txt = (window.UniversalMatcher ? window.UniversalMatcher.getElementLabelText(el) : '').toLowerCase();
+      return el.getAttribute('data-automation-id') === 'email' || el.type === 'email' || txt.includes('email') || txt.includes('username');
+    });
 
-    const passInput = container.querySelector('[data-automation-id="password"], input[type="password"]');
+    const passInput = Array.from(document.querySelectorAll('[data-automation-id="password"], input[type="password"]')).find(el => isElementVisible(el));
 
     const emailVal = currentProfile?.credentials?.email || currentProfile?.personal?.email;
     const passVal = currentProfile?.credentials?.password;

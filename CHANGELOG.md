@@ -2,6 +2,15 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.39] - 2026-08-17
+
+### 👁️ Visibility-Filtered Login Credential Injection
+- **Strictly Visible Input Selection (`content/content_script.js`)**:
+  - Upgraded `executeLoginFlow` to filter `emailInput` and `passInput` selection using `isElementVisible(el)`.
+  - Prevents credential injection into hidden background DOM forms when modal overlays are active.
+
+---
+
 ## [1.17.38] - 2026-08-17
 
 ### 🔑 Auth Modal Credential Injection Intercept & Omni-Click Shield Progression
