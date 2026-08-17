@@ -2,6 +2,17 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.38] - 2026-08-17
+
+### 🔑 Auth Modal Credential Injection Intercept & Omni-Click Shield Progression
+- **Auth Screen Credential Injection Intercept (`content/content_script.js`)**:
+  - Refactored `performStartAutomation()` to check for active Auth modals or password inputs (`isAuthScreen`) before executing button clicks.
+  - Automatically triggers `performAutoSignUp(activeContainer)` to inject credentials and exits immediately, preventing premature empty form submissions.
+- **Omni-Click Workday Progression (`content/content_script.js`)**:
+  - Implemented Omni-Click fallback for Workday progression buttons ("Create Account", "Sign In"), firing `focus()`, `mousedown`, `mouseup`, `.click()`, and `Enter` key events on shield targets.
+
+---
+
 ## [1.17.36] - 2026-08-17
 
 ### 🎯 Strict DOM-Based Auth Mode Classification

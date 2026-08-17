@@ -1165,19 +1165,28 @@
     }
   }
 
-  // On-Demand Automation Trigger (Start Automation Button: Finds & clicks primary "Apply" button)
+  // On-Demand Automation Trigger (Start Automation Button)
   function performStartAutomation() {
+    // 1. Check for Active Auth Modal or Auth Page (The v1.17.38 Fix)
+    const activeContainer = document.querySelector('[role="dialog"], [aria-modal="true"], .wd-popup') || document;
+    const isAuthScreen = activeContainer.querySelector('input[type="password"]');
+
+    if (isAuthScreen) {
+      showToast(`🔑 Auth form detected! Auto-filling credentials...`, "success");
+      performAutoSignUp(activeContainer);
+      return; // Exit function so it doesn't prematurely click submit buttons
+    }
+
     const validPhrases = [
       'apply', 'apply now', 'apply online', 'apply for job', 'apply for a job',
       'apply for this job', 'apply for position', 'apply to job', 'apply today',
-      'start application', 'apply manually', 'submit application'
+      'start application', 'apply manually', 'submit application', 'create account', 'sign in', 'save and continue', 'next', 'submit', 'register'
     ];
-    const negativeWords = ['filter', 'search', 'save', 'login', 'sign in', 'remove', 'delete', 'share', 'help', 'menu', 'alert', 'alerts', 'newsletter', 'job alert', 'job alerts', 'sign up'];
+    // Removed 'login' and 'sign in' from negative words so it doesn't block progression
+    const negativeWords = ['filter', 'search', 'save', 'remove', 'delete', 'share', 'help', 'menu', 'alert', 'alerts', 'newsletter', 'job alert', 'job alerts']; 
 
-    // 1. Broaden Selector Scope & Collect Candidates
     let candidates = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"]'));
 
-    // Check same-origin iframes for embedded ATS forms (Barclays, Workday, Taleo, Phenom)
     try {
       const iframes = Array.from(document.querySelectorAll('iframe'));
       iframes.forEach(iframe => {
@@ -1186,46 +1195,51 @@
             const iframeCandidates = Array.from(iframe.contentDocument.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"]'));
             candidates.push(...iframeCandidates);
           }
-        } catch (e) {
-          // Cross-origin iframe, ignore
-        }
+        } catch (e) {}
       });
     } catch (e) {}
 
-    // Sort candidates: prioritize elements within <main>, article, [role="main"], #content, .job-details, .job-description, header
     candidates.sort((a, b) => {
       const aInMain = a.closest('main, article, [role="main"], #content, .job-details, .job-description, header, [class*="job"]') ? 1 : 0;
       const bInMain = b.closest('main, article, [role="main"], #content, .job-details, .job-description, header, [class*="job"]') ? 1 : 0;
       return bInMain - aInMain;
     });
 
-    // 2 & 3. Flexible Text Matching & Visibility Check
     const applyBtn = candidates.find(el => {
       if (!isElementVisible(el)) return false;
       const btnText = (el.textContent || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || el.getAttribute('data-automation-id') || '').toLowerCase().trim();
-
       if (!btnText) return false;
-
-      // Filter negative words first
       if (negativeWords.some(word => btnText.includes(word))) return false;
-
-      // Match criteria: Exact valid phrase OR startsWith("apply")
-      const isMatch = validPhrases.includes(btnText) ||
-                      (btnText.startsWith('apply') && !negativeWords.some(word => btnText.includes(word)));
-
-      return isMatch;
+      return validPhrases.includes(btnText) || (btnText.startsWith('apply') && !negativeWords.some(word => btnText.includes(word)));
     });
 
     if (applyBtn) {
       const displayBtnText = (applyBtn.textContent || applyBtn.value || applyBtn.getAttribute('aria-label') || 'Apply').trim();
       applyBtn.dataset.autofillNavClicked = "true";
-      showToast(`🔥 Start Automation: Clicking "${displayBtnText}"...`, "success");
-      setTimeout(() => {
-        applyBtn.click();
-        try {
-          applyBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-        } catch (e) {}
-      }, 300);
+
+      // Omni-Click fallback for Workday progression
+      if (displayBtnText.toLowerCase().includes('create account') || displayBtnText.toLowerCase().includes('sign in')) {
+         showToast(`🚀 Blasting through Workday submit shield...`, "success");
+         const submitTargets = [
+           document.querySelector('[data-automation-id="click_filter"]'),
+           document.querySelector('[data-automation-id="createAccountSubmitButton"]'),
+           document.querySelector('[data-automation-id="signInSubmitButton"]'),
+           applyBtn
+         ].filter(el => el && isElementVisible(el));
+
+         submitTargets.forEach(target => {
+           try {
+             target.focus();
+             target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
+             target.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
+             target.click();
+             target.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter', code: 'Enter' }));
+           } catch (e) {}
+         });
+      } else {
+         showToast(`🔥 Start Automation: Clicking "${displayBtnText}"...`, "success");
+         setTimeout(() => applyBtn.click(), 300);
+      }
     } else {
       console.info("Universal Auto-Fill Engine: No 'Apply' button found on current page.");
       showToast(`⚠️ No 'Apply' button found on current page.`, "error");
