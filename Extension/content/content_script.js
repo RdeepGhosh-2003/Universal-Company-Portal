@@ -708,15 +708,32 @@
       const passwordInputCount = container.querySelectorAll('input[type="password"]').length;
       const isCreateAccountMode = !!(confirmPassEl || passwordInputCount >= 2);
 
-      if (isCreateAccountMode) {
-        // Mode A (Create Account): Auto-fill registration, check terms, submit & register domain
+      if (isRegistered && isCreateAccountMode) {
+        // Intercept: User is registered, but Workday defaulted to Account Creation
+        showToast(`🧠 ${hostname} recognized in Memory! Switching to Sign In...`, "success");
+
+        // Locate the "Already have an account? Sign In" toggle link
+        const signInToggle = Array.from(container.querySelectorAll('a, button, [role="link"], div')).find(el => {
+          const txt = (el.textContent || '').toLowerCase().trim();
+          return (txt.includes('already have an account') && txt.includes('sign in')) || txt === 'sign in';
+        });
+
+        if (signInToggle && isElementVisible(signInToggle)) {
+          signInToggle.click();
+          try {
+            signInToggle.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+          } catch(e) {}
+        }
+
+        // Allow 500ms for React to unmount the registration form and mount the login form, then execute Login Flow
+        setTimeout(() => executeLoginFlow(hostname, container), 500);
+
+      } else if (isCreateAccountMode) {
+        // Normal Account Creation
         executeCreateAccountFlow(hostname, container);
-      } else if (isRegistered) {
-        // Mode B (Sign In): Auto-fill saved credentials and submit login
-        executeLoginFlow(hostname, container);
       } else {
-        // Fallback: Default to Create Account Flow if single password field and unregistered
-        executeCreateAccountFlow(hostname, container);
+        // Normal Login
+        executeLoginFlow(hostname, container);
       }
     });
   }

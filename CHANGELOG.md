@@ -2,6 +2,15 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.35] - 2026-08-17
+
+### 🧠 Domain Memory Engine Routing & Workday Sign In Auto-Toggle
+- **Registered Domain Intercept & Sign In Auto-Toggle (`content/content_script.js`)**:
+  - Updated `executeMasterAction` routing logic to intercept requests where `isRegistered` is `true` but Workday defaulted to the Create Account view.
+  - Automatically locates and clicks the "Already have an account? Sign In" toggle link, waits 500ms for React form unmounting, and routes seamlessly to `executeLoginFlow(hostname, container)`.
+
+---
+
 ## [1.17.33] - 2026-08-17
 
 ### 🔥 Start Automation Button Scoping & Job Alerts Form Exclusion Filter
