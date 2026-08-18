@@ -2,6 +2,15 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.47] - 2026-08-18
+
+### 🎯 Ultra-Broad Sign-In Link `.includes()` Matcher
+- **Loose `.includes()` DOM Matching (`content/content_script.js`)**:
+  - Broadened `signInLink` DOM matching in `executeMasterAction` to use loose `.includes('sign in') || .includes('already have an account')` checking.
+  - Accommodates Workday DOM structures that bundle "Already have an account?" text or non-breaking spaces inside anchor elements.
+
+---
+
 ## [1.17.46] - 2026-08-18
 
 ### 🔄 Broadened Sign-In DOM Matcher & Omni-Click React Bypass

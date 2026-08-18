@@ -120,6 +120,7 @@ Universal Company Portal/
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
 - **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard, localized, and Barclays customized Workday automation IDs (`address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"`, `legalNameSection_firstNameLocal`, etc.).
+- **Ultra-Broad Sign-In Link `.includes()` Matcher**: `executeMasterAction` uses loose `.includes('sign in') || .includes('already have an account')` text matching across all anchor and button elements to guarantee maximum catch-rate.
 - **Broadened Sign-In DOM Matcher & Omni-Click React Bypass**: `executeMasterAction` inspects `textContent` across nested `span`/`div`/`a`/`button` elements for "Sign In" toggle links and fires the 5-stage pointer event cascade to open the modal.
 - **Aggressive Auto-Route to Sign-In Modal**: Intercepts `isCreateAccountMode` in `executeMasterAction`, clicks "Sign In" / "Already have an account" toggle links, waits 1000ms, and auto-navigates into `executeLoginFlow`.
 - **React-Bypassing Omni-Click Sequence & Enter Fallback**: `executeLoginFlow` dispatches a 5-stage synthetic pointer event cascade (`pointerdown`, `mousedown`, `pointerup`, `mouseup`, `click`) and direct `Enter` key events on `passInput` to trigger login.

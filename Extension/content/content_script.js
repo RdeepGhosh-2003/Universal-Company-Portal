@@ -735,11 +735,11 @@
 
       // --- Aggressive Auto-Route to Sign-In ---
       if (isCreateAccountMode) {
-        // Broaden search to find the exact "Sign In" toggle element even if nested in spans/divs
-        const signInLink = Array.from(container.querySelectorAll('a, button, [role="link"], [role="button"], span, div')).find(el => {
+        // Ultra-broad search to find any link containing "Sign In"
+        const signInLink = Array.from(container.querySelectorAll('a, button, [role="link"], [data-automation-id*="signIn"]')).find(el => {
           if (!isElementVisible(el)) return false;
-          const text = (el.textContent || '').trim().toLowerCase();
-          return text === 'sign in' && (el.tagName === 'A' || el.tagName === 'BUTTON' || el.hasAttribute('data-automation-id') || el.style.cursor === 'pointer');
+          const text = (el.textContent || '').toLowerCase();
+          return text.includes('sign in') || text.includes('already have an account');
         });
 
         if (signInLink) {
