@@ -2,6 +2,15 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.45] - 2026-08-18
+
+### 🔄 Aggressive Auto-Route to Sign-In Modal
+- **Autonomous Sign-In Redirect (`content/content_script.js`)**:
+  - Injected aggressive auto-route interception block in `executeMasterAction` when `isCreateAccountMode` is detected.
+  - Automatically locates and clicks visible "Sign In" / "Already have an account" toggle links, aborts background registration filling, waits 1000ms for modal rendering, and triggers `executeLoginFlow(hostname, container)`.
+
+---
+
 ## [1.17.44] - 2026-08-18
 
 ### 🔑 React-Bypassing Omni-Click Sequence & Enter-Key Fallback Simulation

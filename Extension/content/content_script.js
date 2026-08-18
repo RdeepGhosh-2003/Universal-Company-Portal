@@ -733,6 +733,27 @@
       // Account Creation Mode: Strictly rely on presence of verification fields or multiple VISIBLE password inputs
       const isCreateAccountMode = !!(strictConfirmPassEl || passwordInputCount >= 2);
 
+      // --- Aggressive Auto-Route to Sign-In ---
+      if (isCreateAccountMode) {
+        const signInLink = Array.from(container.querySelectorAll('a, [role="link"], button, [data-automation-id*="signIn"]')).find(el => {
+          if (!isElementVisible(el)) return false;
+          const text = (el.innerText || '').trim().toLowerCase();
+          return text === 'sign in' || text.includes('already have an account');
+        });
+
+        if (signInLink) {
+          showToast(`🔄 Auto-redirecting to Sign-In modal...`, "info");
+          signInLink.click();
+          try {
+             signInLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+          } catch(e) {}
+
+          // Wait 1 second for the React modal animation to finish, then execute Login
+          setTimeout(() => executeLoginFlow(hostname, container), 1000);
+          return; // Terminate execution here so it aborts filling the background registration form
+        }
+      }
+
       if (isRegistered && isCreateAccountMode) {
         // Intercept: User is registered, but Workday defaulted to Account Creation
         showToast(`🧠 ${hostname} recognized in Memory! Switching to Sign In...`, "success");
