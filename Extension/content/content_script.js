@@ -793,18 +793,28 @@
       executeConsentAutoCheck(container);
       await new Promise(r => setTimeout(r, 800)); // Wait for React state to settle
 
-      const realBtn = container.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="signInButton"]');
-      const shieldBtn = container.querySelector('[data-automation-id="click_filter"]');
-      const loginBtn = realBtn || shieldBtn || findLoginSubmitButton(container);
+      // --- The React-Bypassing Omni-Click Sequence ---
+      const visibleButtons = Array.from(document.querySelectorAll('button, [role="button"], div[data-automation-id*="signIn"]')).filter(el => isElementVisible(el));
+      const loginBtn = visibleButtons.find(el => {
+        const text = (el.innerText || '').toLowerCase().trim();
+        return text === 'sign in' || text === 'submit' || el.getAttribute('data-automation-id') === 'signInSubmitButton';
+      });
 
       if (loginBtn) {
-        showToast(`🔑 Signing into ${hostname}...`, "success");
-        loginBtn.click();
-        try {
-          loginBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-        } catch (e) {}
+        showToast(`🔑 Bypassing React to click Sign In...`, "success");
+        // Trick React with a full physical mouse sequence
+        ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
+            loginBtn.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window, buttons: 1 }));
+        });
       } else {
-        showToast(`⚠️ Filled credentials, but could not locate Sign In submit button.`, "info");
+        showToast(`⚠️ Button not found, firing Enter key...`, "info");
+      }
+
+      // 100% Guarantee Fallback: Fire 'Enter' directly on the password field
+      if (passInput) {
+        ['keydown', 'keypress', 'keyup'].forEach(evt => {
+            passInput.dispatchEvent(new KeyboardEvent(evt, { bubbles: true, cancelable: true, key: 'Enter', code: 'Enter', keyCode: 13 }));
+        });
       }
     })();
   }

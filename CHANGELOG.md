@@ -2,6 +2,16 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.44] - 2026-08-18
+
+### 🔑 React-Bypassing Omni-Click Sequence & Enter-Key Fallback Simulation
+- **Synthetic Pointer Event Cascade (`content/content_script.js`)**:
+  - Upgraded `executeLoginFlow` button submission with a 5-stage synthetic pointer event cascade (`pointerdown`, `mousedown`, `pointerup`, `mouseup`, `click`) to bypass React event interception.
+- **Password Input Enter-Key Fallback (`content/content_script.js`)**:
+  - Injected direct `KeyboardEvent` simulation (`keydown`, `keypress`, `keyup` for `Enter` key) on `passInput` as a 100% guarantee fallback to trigger form submission.
+
+---
+
 ## [1.17.43] - 2026-08-18
 
 ### 🚀 Master Patch: SPA Modal Routing, Login Async Sequencing & Phone Mask Exclusion

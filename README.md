@@ -120,6 +120,7 @@ Universal Company Portal/
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
 - **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard, localized, and Barclays customized Workday automation IDs (`address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"`, `legalNameSection_firstNameLocal`, etc.).
+- **React-Bypassing Omni-Click Sequence & Enter Fallback**: `executeLoginFlow` dispatches a 5-stage synthetic pointer event cascade (`pointerdown`, `mousedown`, `pointerup`, `mouseup`, `click`) and direct `Enter` key events on `passInput` to trigger login.
 - **Master Patch v1.17.43**: Strictly filters `visiblePasswordInputs` and `strictConfirmPassEl` in `executeMasterAction` routing, uses clean `async/await` sequence with 800ms settling in `executeLoginFlow`, and excludes phone fields (`isPhoneField`) from Space + Backspace simulation in `simulateHumanTyping`.
 - **Space + Backspace React State Override**: Automated Space + Backspace keystroke simulation in `simulateHumanTyping` (Step 3.5) forces Workday's background React listeners to register filled inputs, defeating Ghost Data validation errors.
 - **Visibility-Filtered Login Credential Injection**: `executeLoginFlow` filters `emailInput` and `passInput` with `isElementVisible(el)`, preventing injection into hidden background forms.
