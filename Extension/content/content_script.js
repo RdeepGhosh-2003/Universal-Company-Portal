@@ -131,21 +131,25 @@
     }
 
     // 3.5 Ghost Data React State Fix (Space + Backspace Simulation)
-    setVal(strVal + " ");
-    element.dispatchEvent(new Event('input', { bubbles: true }));
-    try {
-      element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: ' ', code: 'Space' }));
-      element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: ' ', code: 'Space' }));
-    } catch(e) {}
+    const isPhoneField = element.type === 'tel' || (element.name && element.name.toLowerCase().includes('phone')) || (element.id && element.id.toLowerCase().includes('phone'));
 
-    await new Promise(resolve => setTimeout(resolve, 30));
+    if (!isPhoneField) {
+      setVal(strVal + " ");
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      try {
+        element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: ' ', code: 'Space' }));
+        element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: ' ', code: 'Space' }));
+      } catch(e) {}
 
-    setVal(strVal);
-    element.dispatchEvent(new Event('input', { bubbles: true }));
-    try {
-      element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Backspace', code: 'Backspace' }));
-      element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: 'Backspace', code: 'Backspace' }));
-    } catch(e) {}
+      await new Promise(resolve => setTimeout(resolve, 30));
+
+      setVal(strVal);
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      try {
+        element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Backspace', code: 'Backspace' }));
+        element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: 'Backspace', code: 'Backspace' }));
+      } catch(e) {}
+    }
 
     // 4. 150ms delay after final keystroke before blur/change to ensure state sticks
     await new Promise(resolve => setTimeout(resolve, 150));
@@ -716,16 +720,18 @@
 
       const isRegistered = registeredDomains.some(d => d.toLowerCase() && (hostname.includes(d.toLowerCase()) || d.toLowerCase().includes(hostname)));
 
-      // Dual-Mode Auth Detection: Check if confirmPassword / verify password input exists on screen
-      const confirmPassEl = container.querySelector('[data-automation-id="confirmPassword"], [data-automation-id="verifyPassword"]') ||
-                            Array.from(container.querySelectorAll('input[type="password"]')).find(el => {
-                              const txt = window.UniversalMatcher.getElementLabelText(el);
+      // Dual-Mode Auth Detection: Strictly target VISIBLE password elements
+      const visiblePasswordInputs = Array.from(container.querySelectorAll('input[type="password"]')).filter(el => isElementVisible(el));
+      const passwordInputCount = visiblePasswordInputs.length;
+
+      const strictConfirmPassEl = Array.from(container.querySelectorAll('[data-automation-id="confirmPassword"], [data-automation-id="verifyPassword"]')).find(el => isElementVisible(el)) ||
+                            visiblePasswordInputs.find(el => {
+                              const txt = window.UniversalMatcher.getElementLabelText(el).toLowerCase();
                               return txt.includes('verify') || txt.includes('confirm') || txt.includes('re-enter') || txt.includes('retype');
                             });
-      const passwordInputCount = container.querySelectorAll('input[type="password"]').length;
 
-      // Account Creation Mode: Strictly rely on presence of verification fields or multiple password inputs
-      const isCreateAccountMode = !!(confirmPassEl || passwordInputCount >= 2);
+      // Account Creation Mode: Strictly rely on presence of verification fields or multiple VISIBLE password inputs
+      const isCreateAccountMode = !!(strictConfirmPassEl || passwordInputCount >= 2);
 
       if (isRegistered && isCreateAccountMode) {
         // Intercept: User is registered, but Workday defaulted to Account Creation
@@ -760,55 +766,46 @@
   function executeLoginFlow(hostname, container = document) {
     showToast(`🔑 Recognized Auth Form on ${hostname}! Auto-signing in...`, "success");
 
-    // 1. Locate strictly VISIBLE Email and Password fields
-    const emailInput = Array.from(document.querySelectorAll('[data-automation-id="email"], input[type="email"], input[type="text"]')).find(el => {
-      if (!isElementVisible(el)) return false;
-      const txt = (window.UniversalMatcher ? window.UniversalMatcher.getElementLabelText(el) : '').toLowerCase();
-      return el.getAttribute('data-automation-id') === 'email' || el.type === 'email' || txt.includes('email') || txt.includes('username');
-    });
-
-    const passInput = Array.from(document.querySelectorAll('[data-automation-id="password"], input[type="password"]')).find(el => isElementVisible(el));
-
     const emailVal = currentProfile?.credentials?.email || currentProfile?.personal?.email;
     const passVal = currentProfile?.credentials?.password;
 
     (async () => {
-      // Sequential Step A: Inject Email field with letter-by-letter human typing
+      // 1. Locate strictly VISIBLE Email and Password fields
+      const emailInput = Array.from(document.querySelectorAll('[data-automation-id="email"], input[type="email"], input[type="text"]')).find(el => {
+        if (!isElementVisible(el)) return false;
+        const txt = (window.UniversalMatcher ? window.UniversalMatcher.getElementLabelText(el) : '').toLowerCase();
+        return el.getAttribute('data-automation-id') === 'email' || el.type === 'email' || txt.includes('email') || txt.includes('username');
+      });
+
+      const passInput = Array.from(document.querySelectorAll('[data-automation-id="password"], input[type="password"]')).find(el => isElementVisible(el));
+
       if (emailInput && emailVal) {
         await simulateHumanTyping(emailInput, emailVal);
         highlightField(emailInput);
       }
+      await new Promise(r => setTimeout(r, 200));
 
-      // Sequential Step B: Wait 200ms, then inject Password field
-      setTimeout(async () => {
-        if (passInput && passVal) {
-          await simulateHumanTyping(passInput, passVal);
-          highlightField(passInput);
-        }
+      if (passInput && passVal) {
+        await simulateHumanTyping(passInput, passVal);
+        highlightField(passInput);
+      }
 
-        executeConsentAutoCheck(container);
+      executeConsentAutoCheck(container);
+      await new Promise(r => setTimeout(r, 800)); // Wait for React state to settle
 
-        // Sequential Step C: Wait 500ms, then target real submit button (or fallback shield / findLoginSubmitButton)
-        setTimeout(() => {
-          // 1. Target real submit button first (human simulation evades shield trigger)
-          const realBtn = container.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="signInButton"]');
+      const realBtn = container.querySelector('[data-automation-id="signInSubmitButton"], [data-automation-id="signInButton"]');
+      const shieldBtn = container.querySelector('[data-automation-id="click_filter"]');
+      const loginBtn = realBtn || shieldBtn || findLoginSubmitButton(container);
 
-          // 2. Fallback to click_filter shield overlay if present
-          const shieldBtn = container.querySelector('[data-automation-id="click_filter"]');
-
-          const loginBtn = realBtn || shieldBtn || findLoginSubmitButton(container);
-
-          if (loginBtn) {
-            showToast(`🔑 Signing into ${hostname}...`, "success");
-            loginBtn.click();
-            try {
-              loginBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-            } catch (e) {}
-          } else {
-            showToast(`⚠️ Filled credentials, but could not locate Sign In submit button.`, "info");
-          }
-        }, 500);
-      }, 200);
+      if (loginBtn) {
+        showToast(`🔑 Signing into ${hostname}...`, "success");
+        loginBtn.click();
+        try {
+          loginBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        } catch (e) {}
+      } else {
+        showToast(`⚠️ Filled credentials, but could not locate Sign In submit button.`, "info");
+      }
     })();
   }
 

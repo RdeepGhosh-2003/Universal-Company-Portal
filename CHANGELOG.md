@@ -2,6 +2,18 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.43] - 2026-08-18
+
+### 🚀 Master Patch: SPA Modal Routing, Login Async Sequencing & Phone Mask Exclusion
+- **SPA Modal Routing Fix (`content/content_script.js`)**:
+  - Updated `executeMasterAction` to count only VISIBLE password inputs (`visiblePasswordInputs`) and verification fields (`strictConfirmPassEl`), preventing hidden background DOM forms from misclassifying Sign In modals.
+- **Login Async Sequence Fix (`content/content_script.js`)**:
+  - Refactored `executeLoginFlow` from nested `setTimeout` callbacks to clean, sequential `async/await` execution with 800ms React state settling delay before submit click.
+- **Phone Mask Protection (`content/content_script.js`)**:
+  - Excluded phone number inputs (`isPhoneField`) from Step 3.5 Space + Backspace simulation in `simulateHumanTyping`, protecting strict numeric input masks.
+
+---
+
 ## [1.17.40] - 2026-08-17
 
 ### 👻 Space + Backspace React State Override for Workday Ghost Data Fix
