@@ -2,6 +2,15 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.46] - 2026-08-18
+
+### 🔄 Broadened Sign-In DOM Matcher & Omni-Click React Bypass
+- **Broadened Selection & Omni-Click Cascade (`content/content_script.js`)**:
+  - Expanded `signInLink` DOM matcher in `executeMasterAction` to inspect `textContent` across nested `span`, `div`, `a`, `button`, and cursor-pointer elements.
+  - Applied the 5-stage synthetic pointer cascade (`pointerdown`, `mousedown`, `pointerup`, `mouseup`, `click`) to force Workday's React router to open the Sign-In modal overlay.
+
+---
+
 ## [1.17.45] - 2026-08-18
 
 ### 🔄 Aggressive Auto-Route to Sign-In Modal

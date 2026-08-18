@@ -735,18 +735,20 @@
 
       // --- Aggressive Auto-Route to Sign-In ---
       if (isCreateAccountMode) {
-        const signInLink = Array.from(container.querySelectorAll('a, [role="link"], button, [data-automation-id*="signIn"]')).find(el => {
+        // Broaden search to find the exact "Sign In" toggle element even if nested in spans/divs
+        const signInLink = Array.from(container.querySelectorAll('a, button, [role="link"], [role="button"], span, div')).find(el => {
           if (!isElementVisible(el)) return false;
-          const text = (el.innerText || '').trim().toLowerCase();
-          return text === 'sign in' || text.includes('already have an account');
+          const text = (el.textContent || '').trim().toLowerCase();
+          return text === 'sign in' && (el.tagName === 'A' || el.tagName === 'BUTTON' || el.hasAttribute('data-automation-id') || el.style.cursor === 'pointer');
         });
 
         if (signInLink) {
-          showToast(`🔄 Auto-redirecting to Sign-In modal...`, "info");
-          signInLink.click();
-          try {
-             signInLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-          } catch(e) {}
+          showToast(`🔄 Bypassing React to open Sign-In modal...`, "info");
+
+          // Hit the link with the Omni-Click sequence to force the React router
+          ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
+              signInLink.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window, buttons: 1 }));
+          });
 
           // Wait 1 second for the React modal animation to finish, then execute Login
           setTimeout(() => executeLoginFlow(hostname, container), 1000);
