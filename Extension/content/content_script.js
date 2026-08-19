@@ -735,15 +735,20 @@
 
       // --- Aggressive Auto-Route to Sign-In ---
       if (isCreateAccountMode) {
-        // 🚨 CRITICAL: Search 'document' globally to break out of form boundaries
-        const signInLink = Array.from(document.querySelectorAll('a, button, [role="link"], [data-automation-id*="signIn"]')).find(el => {
+        // 🚨 ULTIMATE BYPASS: Search all generic tags, but restrict text length to prevent clicking giant background wrappers
+        const signInLink = Array.from(document.querySelectorAll('a, button, span, div, p, [role="link"], [role="button"], [data-automation-id*="signIn"]')).find(el => {
           if (!isElementVisible(el)) return false;
-          const text = (el.textContent || '').toLowerCase();
+
+          const text = (el.textContent || '').toLowerCase().trim();
+
+          // Ignore massive layout containers (the real link text is short)
+          if (text.length === 0 || text.length > 80) return false; 
+
           return text.includes('sign in') || text.includes('already have an account');
         });
 
         if (signInLink) {
-          showToast(`🔄 Global bypass: Forcing Sign-In modal...`, "info");
+          showToast(`🔄 Ultimate bypass: Found hidden link, forcing modal...`, "info");
 
           ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
               signInLink.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window, buttons: 1 }));

@@ -2,6 +2,15 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.50] - 2026-08-19
+
+### 🎯 Broadened Generic Container Querying with Character-Length Filter
+- **Generic Element Matcher & Character Filter (`content/content_script.js`)**:
+  - Broadened `signInLink` DOM query in `executeMasterAction` to inspect generic tags (`span`, `div`, `p`, `[role="button"]`, etc.).
+  - Implemented strict character-length guard (`text.length > 0 && text.length <= 80`) to filter out massive background layout wrappers while capturing disguised Workday SPA toggle elements.
+
+---
+
 ## [1.17.49] - 2026-08-19
 
 ### 🚨 Global Scope Override for Sign-In Toggle Link
