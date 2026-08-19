@@ -2,6 +2,16 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.49] - 2026-08-19
+
+### 🚨 Global Scope Override for Sign-In Toggle Link
+- **Global `document` Scope Querying (`content/content_script.js`)**:
+  - Overrode `signInLink` DOM query in `executeMasterAction` to search `document` globally instead of local form `container`.
+  - Breaks out of form boundaries when Workday SPA nests "Sign In" toggle links outside of the active form wrapper.
+  - Increased React modal rendering delay to 1500ms before executing `executeLoginFlow(hostname, document.body)`.
+
+---
+
 ## [1.17.47] - 2026-08-18
 
 ### 🎯 Ultra-Broad Sign-In Link `.includes()` Matcher

@@ -735,23 +735,22 @@
 
       // --- Aggressive Auto-Route to Sign-In ---
       if (isCreateAccountMode) {
-        // Ultra-broad search to find any link containing "Sign In"
-        const signInLink = Array.from(container.querySelectorAll('a, button, [role="link"], [data-automation-id*="signIn"]')).find(el => {
+        // 🚨 CRITICAL: Search 'document' globally to break out of form boundaries
+        const signInLink = Array.from(document.querySelectorAll('a, button, [role="link"], [data-automation-id*="signIn"]')).find(el => {
           if (!isElementVisible(el)) return false;
           const text = (el.textContent || '').toLowerCase();
           return text.includes('sign in') || text.includes('already have an account');
         });
 
         if (signInLink) {
-          showToast(`🔄 Bypassing React to open Sign-In modal...`, "info");
+          showToast(`🔄 Global bypass: Forcing Sign-In modal...`, "info");
 
-          // Hit the link with the Omni-Click sequence to force the React router
           ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
               signInLink.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window, buttons: 1 }));
           });
 
-          // Wait 1 second for the React modal animation to finish, then execute Login
-          setTimeout(() => executeLoginFlow(hostname, container), 1000);
+          // Wait 1.5 seconds for the React modal to fully render, then execute Login globally
+          setTimeout(() => executeLoginFlow(hostname, document.body), 1500);
           return; // Terminate execution here so it aborts filling the background registration form
         }
       }
