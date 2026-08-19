@@ -120,6 +120,7 @@ Universal Company Portal/
 
 ### 10. 🏢 Workday Auto-Fill Engine & React-Safe Data Injection
 - **Direct & Localized Automation ID Mapping**: Links profile JSON directly to standard, localized, and Barclays customized Workday automation IDs (`address--addressLine1Local`, `addressLine1Local`, `data-fkit-id="address--addressLine1Local"`, `legalNameSection_firstNameLocal`, etc.).
+- **Bottom-Up DOM Traversal (`.reverse()`)**: `executeMasterAction` reverses the DOM node list (`.reverse()`) to perform inside-out bottom-up matching, hitting innermost `<a>`, `<span>`, or `[data-automation-id="signInLink"]` elements first to bypass non-clickable parent wrapper divs.
 - **Generic Element Matcher & Character-Length Guard**: `executeMasterAction` queries generic tags (`span`, `div`, `p`, `[role="button"]`, etc.) with `text.length > 0 && text.length <= 80` to safely catch disguised Workday SPA "Sign In" toggle elements while avoiding layout wrappers.
 - **Global `document` Scope Override for Sign-In Toggle**: `executeMasterAction` searches `document` globally for `signInLink` to break out of form boundaries when Workday SPA nests "Sign In" links outside the form container.
 - **Ultra-Broad Sign-In Link `.includes()` Matcher**: `executeMasterAction` uses loose `.includes('sign in') || .includes('already have an account')` text matching across all anchor and button elements to guarantee maximum catch-rate.

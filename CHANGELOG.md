@@ -2,6 +2,16 @@
 
 All notable changes, updates, version history, and features for the Universal Company Portal Auto-Fill Extension are documented in this file.
 
+## [1.17.51] - 2026-08-19
+
+### 🔄 Bottom-Up DOM Traversal (`.reverse()`) for Sign-In Toggle Selection
+- **Inside-Out Node Traversal (`content/content_script.js`)**:
+  - Refactored `allNodes` DOM selection in `executeMasterAction` using `.reverse()` to perform bottom-up inside-out traversal.
+  - Ensures target selection hits innermost `<a>`, `<span>`, or `[data-automation-id="signInLink"]` elements first, bypassing non-clickable parent wrapper `div` containers.
+  - Enforced strict text equality (`'sign in'`, `'log in'`) and added native fallback click.
+
+---
+
 ## [1.17.50] - 2026-08-19
 
 ### 🎯 Broadened Generic Container Querying with Character-Length Filter

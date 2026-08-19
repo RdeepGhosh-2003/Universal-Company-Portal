@@ -735,24 +735,28 @@
 
       // --- Aggressive Auto-Route to Sign-In ---
       if (isCreateAccountMode) {
-        // 🚨 ULTIMATE BYPASS: Search all generic tags, but restrict text length to prevent clicking giant background wrappers
-        const signInLink = Array.from(document.querySelectorAll('a, button, span, div, p, [role="link"], [role="button"], [data-automation-id*="signIn"]')).find(el => {
+        // 🚨 ULTIMATE BYPASS: Bottom-Up DOM Traversal
+        // Reverse the array to hit the innermost <a> or <span> first, preventing clicks on non-clickable wrapper divs
+        const allNodes = Array.from(document.querySelectorAll('a, button, span, [data-automation-id*="signIn"], [role="link"], [role="button"]')).reverse();
+
+        const signInLink = allNodes.find(el => {
           if (!isElementVisible(el)) return false;
 
-          const text = (el.textContent || '').toLowerCase().trim();
+          const autoId = (el.getAttribute('data-automation-id') || '').toLowerCase();
+          if (autoId === 'signinlink' || autoId === 'signin') return true;
 
-          // Ignore massive layout containers (the real link text is short)
-          if (text.length === 0 || text.length > 80) return false; 
-
-          return text.includes('sign in') || text.includes('already have an account');
+          const text = (el.innerText || el.textContent || '').toLowerCase().trim();
+          return text === 'sign in' || text === 'log in';
         });
 
         if (signInLink) {
-          showToast(`🔄 Ultimate bypass: Found hidden link, forcing modal...`, "info");
+          showToast(`🔄 Bottom-up bypass: Found exact link, forcing modal...`, "info");
 
           ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(evt => {
               signInLink.dispatchEvent(new MouseEvent(evt, { bubbles: true, cancelable: true, view: window, buttons: 1 }));
           });
+
+          try { signInLink.click(); } catch(e) {} // Fallback native click
 
           // Wait 1.5 seconds for the React modal to fully render, then execute Login globally
           setTimeout(() => executeLoginFlow(hostname, document.body), 1500);
